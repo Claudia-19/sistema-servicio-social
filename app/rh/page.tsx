@@ -77,7 +77,7 @@ export default async function RHPage() {
       `);
 
   // =========================================================
-  // AGREGAR SECRETARÃA Y ÃREA ASIGNADA
+  // AGREGAR SECRETARÍA Y ÁREA ASIGNADA
   // =========================================================
 
   const solicitudesConUbicacion =
@@ -121,7 +121,7 @@ export default async function RHPage() {
     );
 
   // =========================================================
-  // ESTADÃSTICAS
+  // ESTADÍSTICAS
   // =========================================================
 
   const total =
@@ -185,7 +185,7 @@ export default async function RHPage() {
           <div className="flex items-center">
             <img
               src="/logo-pachuca.png"
-              alt="Pachuca Capital de la TransformaciÃ³n"
+              alt="Pachuca Capital de la Transformación"
               className="h-16 w-auto object-contain"
             />
           </div>
@@ -263,7 +263,7 @@ export default async function RHPage() {
                 href="/rh/alumnos-activos"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#9D2449] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#621132]"
               >
-                ðŸ‘¥ Alumnos activos
+                👥 Alumnos activos
 
                 <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">
                   {alumnosActivos ?? 0}
@@ -276,13 +276,13 @@ export default async function RHPage() {
                 href="/rh/consultas"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#621132] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#9D2449]"
               >
-                ðŸ”Ž Consultar
+                🔎 Consultar
               </Link>
 
             </div>
 
             {/* =================================================
-                ESTADÃSTICAS
+                ESTADÍSTICAS
             ================================================== */}
 
             <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -431,7 +431,7 @@ export default async function RHPage() {
 
                         <div className="flex items-center justify-between gap-5">
 
-                          {/* INFORMACIÃ“N */}
+                          {/* INFORMACIÓN */}
 
                           <div className="min-w-0">
 
@@ -453,7 +453,7 @@ export default async function RHPage() {
                               <p className="mt-2 text-sm text-gray-600">
 
                                 <span className="font-medium">
-                                  SecretarÃ­a:
+                                  Secretaría:
                                 </span>{" "}
 
                                 {
@@ -467,7 +467,7 @@ export default async function RHPage() {
                               <p className="mt-1 text-sm text-gray-600">
 
                                 <span className="font-medium">
-                                  Ãrea asignada:
+                                  Área asignada:
                                 </span>{" "}
 
                                 {

@@ -66,7 +66,7 @@ export default function NuevaNecesidadPage() {
 
       if (areasError) {
         console.error(areasError);
-        setError("No fue posible cargar las Ã¡reas.");
+        setError("No fue posible cargar las áreas.");
       } else {
         const areasOrdenadas = (areasData ?? []).sort((a, b) => {
           const nombreA = a.nombre.toLowerCase();
@@ -76,9 +76,9 @@ export default function NuevaNecesidadPage() {
           if (nombreA === "asamblea") return -1;
           if (nombreB === "asamblea") return 1;
 
-          // DespuÃ©s van las SecretarÃ­as
-          const esSecretariaA = nombreA.startsWith("secretarÃ­a");
-          const esSecretariaB = nombreB.startsWith("secretarÃ­a");
+          // Después van las Secretarías
+          const esSecretariaA = nombreA.startsWith("secretaría");
+          const esSecretariaB = nombreB.startsWith("secretaría");
 
           if (esSecretariaA && !esSecretariaB) return -1;
           if (!esSecretariaA && esSecretariaB) return 1;
@@ -128,7 +128,7 @@ export default function NuevaNecesidadPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setError("Tu sesiÃ³n ha expirado.");
+      setError("Tu sesión ha expirado.");
       setGuardando(false);
       return;
     }
@@ -175,7 +175,7 @@ export default function NuevaNecesidadPage() {
         formulario.actividad_3.trim(),
       ].join(" | "),
 
-      // Ãrea o departamento especÃ­fico dentro del Ã¡rea de adscripciÃ³n.
+      // Área o departamento específico dentro del área de adscripción.
       area_asignada: formulario.area_asignada.trim(),
 
       horario: formulario.horario.trim(),
@@ -206,7 +206,7 @@ export default function NuevaNecesidadPage() {
         <div className="mx-auto max-w-7xl px-6 py-3">
           <img
             src="/logo-pachuca.png"
-            alt="Pachuca Capital de la TransformaciÃ³n"
+            alt="Pachuca Capital de la Transformación"
             className="h-16 w-auto object-contain"
           />
         </div>
@@ -219,7 +219,7 @@ export default function NuevaNecesidadPage() {
             href="/coordinador"
             className="text-sm text-gris-oscuro transition hover:text-vino-oscuro"
           >
-            â† Regresar
+            ← Regresar
           </a>
 
           <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-vino-claro">
@@ -231,7 +231,7 @@ export default function NuevaNecesidadPage() {
           </h2>
 
           <p className="mt-2 text-gris-oscuro">
-            Registra la informaciÃ³n de la vacante disponible en tu Ã¡rea.
+            Registra la información de la vacante disponible en tu área.
           </p>
         </div>
 
@@ -239,16 +239,16 @@ export default function NuevaNecesidadPage() {
           onSubmit={guardarNecesidad}
           className="space-y-6"
         >
-          {/* ÃREA DE ADSCRIPCIÃ“N */}
+          {/* ÁREA DE ADSCRIPCIÓN */}
           <div className="rounded-xl border border-dorado-claro bg-white p-6 shadow-sm">
             <div className="mb-4 h-1 w-12 rounded-full bg-vino-oscuro" />
 
             <h3 className="text-lg font-semibold text-vino-oscuro">
-              Ãrea de adscripciÃ³n
+              Área de adscripción
             </h3>
 
             <p className="mt-1 text-sm text-gris-oscuro">
-              Selecciona el Ã¡rea en la que se incorporarÃ¡ el prestador.
+              Selecciona el área en la que se incorporará el prestador.
             </p>
 
             <div className="mt-5">
@@ -256,7 +256,7 @@ export default function NuevaNecesidadPage() {
                 htmlFor="area_id"
                 className="mb-2 block text-sm font-medium text-vino-oscuro"
               >
-                Ãrea de adscripciÃ³n *
+                Área de adscripción *
               </label>
 
               <select
@@ -270,8 +270,8 @@ export default function NuevaNecesidadPage() {
               >
                 <option value="">
                   {loadingAreas
-                    ? "Cargando Ã¡reas..."
-                    : "Selecciona un Ã¡rea de adscripciÃ³n"}
+                    ? "Cargando áreas..."
+                    : "Selecciona un área de adscripción"}
                 </option>
 
                 {areas.map((area) => (
@@ -286,7 +286,7 @@ export default function NuevaNecesidadPage() {
 
               {!loadingAreas && areas.length === 0 && (
                 <p className="mt-2 text-sm text-amber-700">
-                  TodavÃ­a no hay Ã¡reas registradas en el catÃ¡logo.
+                  Todavía no hay áreas registradas en el catálogo.
                 </p>
               )}
             </div>
@@ -301,7 +301,7 @@ export default function NuevaNecesidadPage() {
             </h3>
 
             <p className="mt-1 text-sm text-gris-oscuro">
-              Describe las caracterÃ­sticas y conocimientos que requiere la vacante.
+              Describe las características y conocimientos que requiere la vacante.
             </p>
 
             <div className="mt-5">
@@ -319,22 +319,22 @@ export default function NuevaNecesidadPage() {
                 onChange={handleChange}
                 required
                 rows={3}
-                placeholder="Describe el perfil que requiere el Ã¡rea..."
+                placeholder="Describe el perfil que requiere el área..."
                 className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C]"
               />
             </div>
           </div>
 
-          {/* DATOS ACADÃ‰MICOS */}
+          {/* DATOS ACADÉMICOS */}
           <div className="rounded-xl border border-dorado-claro bg-white p-6 shadow-sm">
             <div className="mb-4 h-1 w-12 rounded-full bg-vino-claro" />
 
             <h3 className="text-lg font-semibold text-vino-oscuro">
-              Perfil acadÃ©mico
+              Perfil académico
             </h3>
 
             <p className="mt-1 text-sm text-gris-oscuro">
-              Selecciona o escribe la carrera y el nivel acadÃ©mico requerido.
+              Selecciona o escribe la carrera y el nivel académico requerido.
             </p>
 
             <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -376,17 +376,17 @@ export default function NuevaNecesidadPage() {
 
                 <p className="mt-2 text-xs text-gris-oscuro">
                   Puedes escribir parte del nombre para encontrar una carrera
-                  del catÃ¡logo.
+                  del catálogo.
                 </p>
               </div>
 
-              {/* NIVEL ACADÃ‰MICO */}
+              {/* NIVEL ACADÉMICO */}
               <div>
                 <label
                   htmlFor="nivel_academico"
                   className="mb-2 block text-sm font-medium text-vino-oscuro"
                 >
-                  Nivel acadÃ©mico *
+                  Nivel académico *
                 </label>
 
                 <select
@@ -398,7 +398,7 @@ export default function NuevaNecesidadPage() {
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C]"
                 >
                   <option value="">
-                    Selecciona un nivel acadÃ©mico
+                    Selecciona un nivel académico
                   </option>
 
                   <option value="Bachillerato">
@@ -409,8 +409,8 @@ export default function NuevaNecesidadPage() {
                     Licenciatura
                   </option>
 
-                  <option value="IngenierÃ­a">
-                    IngenierÃ­a
+                  <option value="Ingeniería">
+                    Ingeniería
                   </option>
                 </select>
               </div>
@@ -449,7 +449,7 @@ export default function NuevaNecesidadPage() {
             </h3>
 
             <p className="mt-1 text-sm text-gris-oscuro">
-              Registra las tres actividades principales que realizarÃ¡ el prestador.
+              Registra las tres actividades principales que realizará el prestador.
             </p>
 
             <div className="mt-5 space-y-5">
@@ -515,26 +515,26 @@ export default function NuevaNecesidadPage() {
             </div>
           </div>
 
-          {/* INFORMACIÃ“N DE LA VACANTE */}
+          {/* INFORMACIÓN DE LA VACANTE */}
           <div className="rounded-xl border border-dorado-claro bg-white p-6 shadow-sm">
             <div className="mb-4 h-1 w-12 rounded-full bg-vino-oscuro" />
 
             <h3 className="text-lg font-semibold text-vino-oscuro">
-              InformaciÃ³n de la vacante
+              Información de la vacante
             </h3>
 
             <p className="mt-1 text-sm text-gris-oscuro">
-              Define el Ã¡rea asignada, horario, jefe inmediato y nÃºmero de vacantes disponibles.
+              Define el área asignada, horario, jefe inmediato y número de vacantes disponibles.
             </p>
 
             <div className="mt-5 grid gap-5 md:grid-cols-2">
-              {/* ÃREA ASIGNADA */}
+              {/* ÁREA ASIGNADA */}
               <div>
                 <label
                   htmlFor="area_asignada"
                   className="mb-2 block text-sm font-medium text-vino-oscuro"
                 >
-                  Ãrea asignada *
+                  Área asignada *
                 </label>
 
                 <input
@@ -544,12 +544,12 @@ export default function NuevaNecesidadPage() {
                   value={formulario.area_asignada}
                   onChange={handleChange}
                   required
-                  placeholder="Ej. Departamento de ProfesionalizaciÃ³n"
+                  placeholder="Ej. Departamento de Profesionalización"
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C]"
                 />
 
                 <p className="mt-2 text-xs text-gris-oscuro">
-                  Indica el departamento, Ã¡rea o programa especÃ­fico donde realizarÃ¡ sus actividades.
+                  Indica el departamento, área o programa específico donde realizará sus actividades.
                 </p>
               </div>
 
@@ -605,13 +605,13 @@ export default function NuevaNecesidadPage() {
                 />
               </div>
 
-              {/* NÃšMERO DE VACANTES */}
+              {/* NÚMERO DE VACANTES */}
               <div>
                 <label
                   htmlFor="vacantes_disponibles"
                   className="mb-2 block text-sm font-medium text-vino-oscuro"
                 >
-                  NÃºmero de vacantes *
+                  Número de vacantes *
                 </label>
 
                 <input

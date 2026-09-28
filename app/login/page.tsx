@@ -26,7 +26,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError("Correo electrÃ³nico o contraseÃ±a incorrectos.");
+      setError("Correo electrónico o contraseña incorrectos.");
       setLoading(false);
       return;
     }
@@ -42,7 +42,7 @@ export default function LoginPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-5">
           <img
             src="/logo-pachuca.png"
-            alt="Pachuca Capital de la TransformaciÃ³n"
+            alt="Pachuca Capital de la Transformación"
             className="h-24 w-auto object-contain"
           />
         </div>
@@ -52,7 +52,7 @@ export default function LoginPage() {
       <section className="flex min-h-[calc(100vh-130px)] items-center justify-center px-6 py-14">
         <div className="w-full max-w-xl">
 
-          {/* TÃ­tulo */}
+          {/* Título */}
           <div className="mb-8 text-center">
             <p className="mb-3 text-base font-semibold uppercase tracking-wider text-[#9D2449]">
               Presidencia Municipal
@@ -61,11 +61,11 @@ export default function LoginPage() {
             <h1 className="text-4xl font-bold leading-tight text-[#621132] sm:text-5xl">
               Sistema de Control de
               <br />
-              Prestadores
+              Estudiantes
             </h1>
 
             <p className="mt-4 text-base text-[#707272]">
-              Inicia sesiÃ³n para continuar
+              Inicia sesión para continuar
             </p>
           </div>
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
                   htmlFor="correo"
                   className="mb-2 block text-sm font-semibold text-[#621132]"
                 >
-                  Correo electrÃ³nico
+                  Correo electrónico
                 </label>
 
                 <input
@@ -93,13 +93,13 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* ContraseÃ±a */}
+              {/* Contraseña */}
               <div>
                 <label
                   htmlFor="contrasena"
                   className="mb-2 block text-sm font-semibold text-[#621132]"
                 >
-                  ContraseÃ±a
+                  Contraseña
                 </label>
 
                 <input
@@ -107,18 +107,18 @@ export default function LoginPage() {
                   type="password"
                   value={contrasena}
                   onChange={(e) => setContrasena(e.target.value)}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   required
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3.5 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
                 />
 
-                {/* RecuperaciÃ³n de contraseÃ±a */}
+                {/* Recuperación de contraseña */}
                 <div className="mt-2 text-right">
                   <Link
                     href="/auth/forgot-password"
                     className="text-sm font-medium text-[#9D2449] underline-offset-4 hover:text-[#621132] hover:underline"
                   >
-                    Â¿Olvidaste tu contraseÃ±a?
+                    ¿Olvidaste tu contraseña?
                   </Link>
                 </div>
               </div>
@@ -130,20 +130,20 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* BotÃ³n */}
+              {/* Botón */}
               <button
                 type="submit"
                 disabled={loading}
                 className="w-full rounded-lg bg-[#621132] px-5 py-3.5 text-base font-semibold text-white transition hover:bg-[#9D2449] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Iniciando sesiÃ³n..." : "Iniciar sesiÃ³n"}
+                {loading ? "Iniciando sesión..." : "Iniciar sesión"}
               </button>
             </form>
 
             {/* Registro */}
             <div className="mt-7 text-center">
               <p className="text-sm text-[#707272]">
-                Â¿AÃºn no tienes una cuenta?
+                ¿Aún no tienes una cuenta?
               </p>
 
               <Link
@@ -161,7 +161,7 @@ export default function LoginPage() {
               href="/"
               className="text-sm text-[#707272] transition hover:text-[#621132]"
             >
-              â† Regresar al inicio
+              ← Regresar al inicio
             </Link>
           </div>
 

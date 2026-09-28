@@ -51,7 +51,7 @@ export default async function SolicitudesAdministradoraPage() {
           <div className="flex items-center">
             <img
               src="/logo-pachuca.png"
-              alt="Pachuca Capital de la TransformaciÃ³n"
+              alt="Pachuca Capital de la Transformación"
               className="h-16 w-auto object-contain"
             />
           </div>
@@ -70,17 +70,17 @@ export default async function SolicitudesAdministradoraPage() {
 
       {/* CONTENIDO */}
       <section className="mx-auto max-w-7xl px-6 py-10">
-        {/* TÃTULO */}
+        {/* TÍTULO */}
         <div className="mb-8">
           <Link
             href="/administradora"
             className="text-sm font-medium text-[#621132] transition hover:text-[#9D2449]"
           >
-            â† Regresar al panel
+            ← Regresar al panel
           </Link>
 
           <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
-            AdministraciÃ³n
+            Administración
           </p>
 
           <h2 className="mt-2 text-3xl font-bold text-[#621132]">
@@ -115,7 +115,7 @@ export default async function SolicitudesAdministradoraPage() {
             <div className="px-6 py-12 text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#D4C29C]/30">
                 <span className="text-xl text-[#621132]">
-                  âœ“
+                  ✓
                 </span>
               </div>
 
@@ -124,7 +124,7 @@ export default async function SolicitudesAdministradoraPage() {
               </p>
 
               <p className="mt-2 text-sm text-gray-500">
-                Cuando un alumno registre una solicitud, aparecerÃ¡ aquÃ­.
+                Cuando un alumno registre una solicitud, aparecerá aquí.
               </p>
             </div>
           ) : (
@@ -135,7 +135,7 @@ export default async function SolicitudesAdministradoraPage() {
                   className="px-6 py-5 transition hover:bg-gray-50"
                 >
                   <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    {/* INFORMACIÃ“N */}
+                    {/* INFORMACIÓN */}
                     <div>
                       <h4 className="font-semibold text-[#621132]">
                         {solicitud.nombre}
@@ -164,7 +164,7 @@ export default async function SolicitudesAdministradoraPage() {
                       </div>
                     </div>
 
-                    {/* ESTADO Y BOTÃ“N */}
+                    {/* ESTADO Y BOTÓN */}
                     <div className="flex flex-wrap items-center gap-4">
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-medium ${

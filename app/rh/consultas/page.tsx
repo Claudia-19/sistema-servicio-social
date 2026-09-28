@@ -21,7 +21,7 @@ type RegistroConsulta = {
   total_horas: number | null;
   tipo_proceso: string | null;
 
-  // InformaciÃ³n actual del sistema
+  // Información actual del sistema
   estado_prestacion?: string | null;
   fecha_activacion?: string | null;
   fecha_baja?: string | null;
@@ -59,7 +59,7 @@ export default async function ConsultasRHPage() {
   }
 
   // =========================================================
-  // HISTÃ“RICO DE EXCEL
+  // HISTÓRICO DE EXCEL
   // =========================================================
 
   const {
@@ -178,7 +178,7 @@ export default async function ConsultasRHPage() {
         };
 
   // =========================================================
-  // ÃREAS / SECRETARÃAS
+  // ÁREAS / SECRETARÍAS
   // =========================================================
 
   const areaIds = (necesidades ?? [])
@@ -235,8 +235,8 @@ export default async function ConsultasRHPage() {
         };
 
   // =========================================================
-  // CONVERTIR INFORMACIÃ“N ACTUAL
-  // AL MISMO FORMATO DEL HISTÃ“RICO
+  // CONVERTIR INFORMACIÓN ACTUAL
+  // AL MISMO FORMATO DEL HISTÓRICO
   // =========================================================
 
   const registrosActuales: RegistroConsulta[] =
@@ -363,7 +363,7 @@ export default async function ConsultasRHPage() {
     );
 
   // =========================================================
-  // CONVERTIR HISTÃ“RICO
+  // CONVERTIR HISTÓRICO
   // =========================================================
 
   const registrosHistoricos: RegistroConsulta[] =
@@ -372,7 +372,7 @@ export default async function ConsultasRHPage() {
         ...registro,
 
         estado_prestacion:
-          "HistÃ³rico",
+          "Histórico",
 
         fecha_activacion:
           registro.fecha_inicio,
@@ -426,7 +426,7 @@ export default async function ConsultasRHPage() {
           <div className="flex items-center">
             <img
               src="/logo-pachuca.png"
-              alt="Pachuca Capital de la TransformaciÃ³n"
+              alt="Pachuca Capital de la Transformación"
               className="h-16 w-auto object-contain"
             />
           </div>
@@ -458,7 +458,7 @@ export default async function ConsultasRHPage() {
             href="/rh"
             className="text-sm font-medium text-[#9D2449] hover:underline"
           >
-            â† Regresar a solicitudes
+            ← Regresar a solicitudes
           </Link>
 
           <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
@@ -470,8 +470,8 @@ export default async function ConsultasRHPage() {
           </h2>
 
           <p className="mt-2 text-gray-600">
-            Consulta la informaciÃ³n de prestadores
-            histÃ³ricos y actuales del sistema.
+            Consulta la información de prestadores
+            históricos y actuales del sistema.
           </p>
         </div>
 
@@ -479,7 +479,7 @@ export default async function ConsultasRHPage() {
           <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
             <p className="font-medium">
               No fue posible consultar la
-              informaciÃ³n.
+              información.
             </p>
 
             <p className="mt-1">

@@ -182,7 +182,7 @@ export default async function HistorialPrestadoresPage({
   }
 
   // =========================================================
-  // SECRETARÃAS
+  // SECRETARÍAS
   // =========================================================
 
   const areaIds = (necesidades ?? [])
@@ -202,7 +202,7 @@ export default async function HistorialPrestadoresPage({
 
   if (errorAreas) {
     console.error(
-      "Error al consultar Ã¡reas:",
+      "Error al consultar áreas:",
       errorAreas
     );
   }
@@ -286,10 +286,10 @@ export default async function HistorialPrestadoresPage({
         carrera: solicitud.carrera,
         tipoProceso: solicitud.tipo_proceso,
         secretaria:
-          area?.nombre ?? "Sin SecretarÃ­a",
+          area?.nombre ?? "Sin Secretaría",
         areaAsignada:
           necesidad?.area_asignada ??
-          "Sin Ã¡rea asignada",
+          "Sin área asignada",
         estadoPrestacion:
           asignacion.estado_prestacion ??
           "Sin estado",
@@ -318,7 +318,7 @@ export default async function HistorialPrestadoresPage({
     );
 
   // =========================================================
-  // SECRETARÃAS PARA EL FILTRO
+  // SECRETARÍAS PARA EL FILTRO
   // =========================================================
 
   const secretarias = Array.from(
@@ -330,7 +330,7 @@ export default async function HistorialPrestadoresPage({
   ).sort();
 
   // =========================================================
-  // AÃ‘OS DISPONIBLES
+  // AÑOS DISPONIBLES
   // =========================================================
 
   const anios = Array.from(
@@ -422,7 +422,7 @@ export default async function HistorialPrestadoresPage({
     fecha: string | null
   ) => {
     if (!fecha) {
-      return "â€”";
+      return "—";
     }
 
     return new Date(fecha).toLocaleDateString(
@@ -446,7 +446,7 @@ export default async function HistorialPrestadoresPage({
           <div className="flex items-center">
             <img
               src="/logo-pachuca.png"
-              alt="Pachuca Capital de la TransformaciÃ³n"
+              alt="Pachuca Capital de la Transformación"
               className="h-16 w-auto object-contain"
             />
           </div>
@@ -477,10 +477,10 @@ export default async function HistorialPrestadoresPage({
           href="/rh"
           className="text-sm font-medium text-[#9D2449] hover:text-[#621132]"
         >
-          â† Regresar a Recursos Humanos
+          ← Regresar a Recursos Humanos
         </Link>
 
-        {/* TÃTULO */}
+        {/* TÍTULO */}
 
         <div className="mt-6 mb-8">
           <p className="text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
@@ -493,7 +493,7 @@ export default async function HistorialPrestadoresPage({
 
           <p className="mt-2 text-gray-600">
             Consulta los alumnos que han participado
-            en el sistema y el estado de su prestaciÃ³n.
+            en el sistema y el estado de su prestación.
           </p>
         </div>
 
@@ -512,7 +512,7 @@ export default async function HistorialPrestadoresPage({
 
             <p className="mt-1 text-sm text-gray-500">
               Filtra el historial por alumno,
-              SecretarÃ­a, estado o aÃ±o.
+              Secretaría, estado o año.
             </p>
           </div>
 
@@ -528,16 +528,16 @@ export default async function HistorialPrestadoresPage({
                 type="text"
                 name="buscar"
                 defaultValue={buscar}
-                placeholder="Nombre, carrera o matrÃ­cula"
+                placeholder="Nombre, carrera o matrícula"
                 className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-[#9D2449] focus:ring-2 focus:ring-[#9D2449]/20"
               />
             </div>
 
-            {/* SECRETARÃA */}
+            {/* SECRETARÍA */}
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                SecretarÃ­a
+                Secretaría
               </label>
 
               <select
@@ -548,7 +548,7 @@ export default async function HistorialPrestadoresPage({
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[#9D2449] focus:ring-2 focus:ring-[#9D2449]/20"
               >
                 <option value="Todas">
-                  Todas las SecretarÃ­as
+                  Todas las Secretarías
                 </option>
 
                 {secretarias.map(
@@ -568,7 +568,7 @@ export default async function HistorialPrestadoresPage({
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                Estado de la prestaciÃ³n
+                Estado de la prestación
               </label>
 
               <select
@@ -582,8 +582,8 @@ export default async function HistorialPrestadoresPage({
                   Todos los estados
                 </option>
 
-                <option value="Pendiente de activaciÃ³n">
-                  Pendiente de activaciÃ³n
+                <option value="Pendiente de activación">
+                  Pendiente de activación
                 </option>
 
                 <option value="Activa">
@@ -600,11 +600,11 @@ export default async function HistorialPrestadoresPage({
               </select>
             </div>
 
-            {/* AÃ‘O */}
+            {/* AÑO */}
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                AÃ±o
+                Año
               </label>
 
               <select
@@ -615,7 +615,7 @@ export default async function HistorialPrestadoresPage({
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[#9D2449] focus:ring-2 focus:ring-[#9D2449]/20"
               >
                 <option value="">
-                  Todos los aÃ±os
+                  Todos los años
                 </option>
 
                 {anios.map((anio) => (
@@ -635,7 +635,7 @@ export default async function HistorialPrestadoresPage({
               type="submit"
               className="rounded-lg bg-[#621132] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#9D2449]"
             >
-              ðŸ”Ž Aplicar filtros
+              🔎 Aplicar filtros
             </button>
 
             <Link
@@ -677,7 +677,7 @@ export default async function HistorialPrestadoresPage({
           {historialFiltrado.length === 0 ? (
             <div className="p-12 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-2xl">
-                ðŸ“‹
+                📋
               </div>
 
               <p className="mt-4 font-medium text-gray-700">
@@ -685,7 +685,7 @@ export default async function HistorialPrestadoresPage({
               </p>
 
               <p className="mt-2 text-sm text-gray-500">
-                Prueba cambiando los filtros de bÃºsqueda.
+                Prueba cambiando los filtros de búsqueda.
               </p>
             </div>
           ) : (
@@ -702,11 +702,11 @@ export default async function HistorialPrestadoresPage({
                     </th>
 
                     <th className="px-5 py-4 font-semibold">
-                      SecretarÃ­a
+                      Secretaría
                     </th>
 
                     <th className="px-5 py-4 font-semibold">
-                      Ãrea asignada
+                      Área asignada
                     </th>
 
                     <th className="px-5 py-4 font-semibold">
@@ -718,11 +718,11 @@ export default async function HistorialPrestadoresPage({
                     </th>
 
                     <th className="px-5 py-4 font-semibold">
-                      ActivaciÃ³n
+                      Activación
                     </th>
 
                     <th className="px-5 py-4 font-semibold">
-                      TÃ©rmino / Baja
+                      Término / Baja
                     </th>
 
                     <th className="px-5 py-4 font-semibold">
@@ -745,14 +745,14 @@ export default async function HistorialPrestadoresPage({
 
                           {alumno.matricula && (
                             <p className="mt-1 text-xs text-gray-500">
-                              MatrÃ­cula:{" "}
+                              Matrícula:{" "}
                               {alumno.matricula}
                             </p>
                           )}
 
                           <p className="mt-1 text-xs text-gray-500">
                             {alumno.institucion ??
-                              "Sin instituciÃ³n"}
+                              "Sin institución"}
                           </p>
                         </td>
 
@@ -773,7 +773,7 @@ export default async function HistorialPrestadoresPage({
 
                         <td className="px-5 py-4">
                           {alumno.tipoProceso ??
-                            "â€”"}
+                            "—"}
                         </td>
 
                         <td className="px-5 py-4">
@@ -861,7 +861,7 @@ export default async function HistorialPrestadoresPage({
 
         <div className="mt-6 rounded-xl border border-[#D4C29C] bg-[#D4C29C]/10 p-5">
           <p className="text-sm font-medium text-[#621132]">
-            ðŸ’¡ Historial
+            💡 Historial
           </p>
 
           <p className="mt-1 text-sm leading-6 text-gray-600">

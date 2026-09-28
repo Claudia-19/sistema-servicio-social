@@ -28,13 +28,12 @@ export default function Home() {
             </p>
 
             <h1 className="text-4xl font-bold tracking-tight text-[#621132] sm:text-5xl">
-              Sistema de Control de Prestadores
+              Sistema Integral de Seguimiento de Formación Profesional
             </h1>
 
             <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-[#707272] sm:text-lg">
               Sistema para el registro, seguimiento y asignación de personas
-              que realizan Servicio Social, Prácticas Profesionales o
-              Estadía en las diferentes áreas de la Presidencia Municipal.
+              que realizan Servicio Social, y trámites similares en las diferentes áreas de la Presidencia Municipal.
             </p>
           </div>
 

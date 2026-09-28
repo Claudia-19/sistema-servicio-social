@@ -75,7 +75,7 @@ export default function SolicitudPage() {
          * 1. Una ruta interna:
          *    usuario-id/archivo.jpg
          *
-         * 2. Una URL pÃºblica antigua:
+         * 2. Una URL pública antigua:
          *    https://...supabase.co/storage/v1/object/public/fotos-alumnos/usuario-id/archivo.jpg
          *
          * Convertimos ambas posibilidades a una ruta de Storage
@@ -132,7 +132,7 @@ export default function SolicitudPage() {
     }
 
     if (!archivo.type.startsWith("image/")) {
-      setError("La fotografÃ­a debe ser un archivo de imagen.");
+      setError("La fotografía debe ser un archivo de imagen.");
       e.target.value = "";
       setFotografia(null);
       setFotografiaPreview("");
@@ -140,7 +140,7 @@ export default function SolicitudPage() {
     }
 
     if (archivo.size > 5 * 1024 * 1024) {
-      setError("La fotografÃ­a no debe superar los 5 MB.");
+      setError("La fotografía no debe superar los 5 MB.");
       e.target.value = "";
       setFotografia(null);
       setFotografiaPreview("");
@@ -164,14 +164,14 @@ export default function SolicitudPage() {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      setError("Tu sesiÃ³n ha expirado. Inicia sesiÃ³n nuevamente.");
+      setError("Tu sesión ha expirado. Inicia sesión nuevamente.");
       setLoading(false);
       return;
     }
 
     if (!fotografia) {
       setError(
-        "Debes seleccionar una fotografÃ­a para enviar la solicitud."
+        "Debes seleccionar una fotografía para enviar la solicitud."
       );
       setLoading(false);
       return;
@@ -195,7 +195,7 @@ export default function SolicitudPage() {
       console.error(uploadError);
 
       setError(
-        "No fue posible subir la fotografÃ­a. IntÃ©ntalo nuevamente."
+        "No fue posible subir la fotografía. Inténtalo nuevamente."
       );
 
       setLoading(false);
@@ -205,7 +205,7 @@ export default function SolicitudPage() {
     /*
      * IMPORTANTE:
      * Como el bucket es privado, ya NO guardamos getPublicUrl().
-     * Guardamos Ãºnicamente la ruta interna del archivo.
+     * Guardamos únicamente la ruta interna del archivo.
      */
     const { error: insertError } = await supabase
       .from("solicitudes")
@@ -234,7 +234,7 @@ export default function SolicitudPage() {
         .remove([rutaFotografia]);
 
       setError(
-        "No fue posible enviar la solicitud. IntÃ©ntalo nuevamente."
+        "No fue posible enviar la solicitud. Inténtalo nuevamente."
       );
 
       setLoading(false);
@@ -243,7 +243,7 @@ export default function SolicitudPage() {
 
     /*
      * Generamos una URL firmada para mostrar inmediatamente
-     * la fotografÃ­a al alumno.
+     * la fotografía al alumno.
      */
     const { data: signedUrlData } = await supabase.storage
       .from("fotos-alumnos")
@@ -261,7 +261,7 @@ export default function SolicitudPage() {
           <div className="mx-auto max-w-7xl px-6 py-3">
             <img
               src="/logo-pachuca.png"
-              alt="Pachuca Capital de la TransformaciÃ³n"
+              alt="Pachuca Capital de la Transformación"
               className="h-16 w-auto object-contain"
             />
           </div>
@@ -284,22 +284,22 @@ export default function SolicitudPage() {
           <div className="mx-auto max-w-7xl px-6 py-3">
             <img
               src="/logo-pachuca.png"
-              alt="Pachuca Capital de la TransformaciÃ³n"
+              alt="Pachuca Capital de la Transformación"
               className="h-16 w-auto object-contain"
             />
           </div>
         </header>
 
-        {/* CONFIRMACIÃ“N */}
+        {/* CONFIRMACIÓN */}
         <section className="flex min-h-[calc(100vh-88px)] items-center justify-center px-6 py-12">
           <div className="w-full max-w-2xl">
             <div className="rounded-xl border border-dorado-claro bg-white p-8 text-center shadow-sm sm:p-10">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#D4C29C]">
-                <span className="text-3xl text-vino-oscuro">âœ“</span>
+                <span className="text-3xl text-vino-oscuro">✓</span>
               </div>
 
               <h2 className="text-3xl font-bold text-vino-oscuro">
-                Â¡Solicitud recibida!
+                ¡Solicitud recibida!
               </h2>
 
               <p className="mt-5 text-base leading-7 text-gris-oscuro">
@@ -309,11 +309,11 @@ export default function SolicitudPage() {
               <p className="mt-3 text-base leading-7 text-gris-oscuro">
                 El{" "}
                 <strong className="text-vino-oscuro">
-                  Departamento de ProfesionalizaciÃ³n
+                  Departamento de Profesionalización
                 </strong>{" "}
-                atenderÃ¡ tu solicitud en un plazo mÃ¡ximo de{" "}
+                atenderá tu solicitud en un plazo máximo de{" "}
                 <strong className="text-vino-oscuro">
-                  dos dÃ­as hÃ¡biles
+                  dos días hábiles
                 </strong>
                 .
               </p>
@@ -321,9 +321,9 @@ export default function SolicitudPage() {
               <p className="mt-3 text-base leading-7 text-gris-oscuro">
                 Te recomendamos estar pendiente de tu{" "}
                 <strong className="text-vino-oscuro">
-                  correo electrÃ³nico
+                  correo electrónico
                 </strong>
-                , ya que recibirÃ¡s informaciÃ³n relacionada con el seguimiento
+                , ya que recibirás información relacionada con el seguimiento
                 de tu solicitud.
               </p>
 
@@ -351,7 +351,7 @@ export default function SolicitudPage() {
         <div className="mx-auto max-w-7xl px-6 py-3">
           <img
             src="/logo-pachuca.png"
-            alt="Pachuca Capital de la TransformaciÃ³n"
+            alt="Pachuca Capital de la Transformación"
             className="h-16 w-auto object-contain"
           />
         </div>
@@ -368,7 +368,7 @@ export default function SolicitudPage() {
           </h2>
 
           <p className="mt-2 text-gris-oscuro">
-            Completa la informaciÃ³n solicitada para iniciar tu proceso.
+            Completa la información solicitada para iniciar tu proceso.
           </p>
         </div>
 
@@ -385,7 +385,7 @@ export default function SolicitudPage() {
             </h3>
 
             <p className="mt-1 text-sm text-gris-oscuro">
-              Proporciona tus datos personales y acadÃ©micos.
+              Proporciona tus datos personales y académicos.
             </p>
           </div>
 
@@ -393,12 +393,12 @@ export default function SolicitudPage() {
             {[
               ["nombre", "Nombre completo", "text"],
               ["domicilio", "Domicilio", "text"],
-              ["institucion", "InstituciÃ³n educativa", "text"],
+              ["institucion", "Institución educativa", "text"],
               ["carrera", "Carrera", "text"],
               ["semestre", "Semestre / Cuatrimestre", "text"],
-              ["matricula", "MatrÃ­cula / NÃºmero de control", "text"],
-              ["telefono", "TelÃ©fono celular", "tel"],
-              ["correo", "Correo electrÃ³nico", "email"],
+              ["matricula", "Matrícula / Número de control", "text"],
+              ["telefono", "Teléfono celular", "tel"],
+              ["correo", "Correo electrónico", "email"],
             ].map(([name, label, type]) => (
               <div key={name}>
                 <label
@@ -418,7 +418,7 @@ export default function SolicitudPage() {
                   disabled={solicitudExistente}
                   placeholder={
                     name === "semestre"
-                      ? "Ej. 9Â° cuatrimestre"
+                      ? "Ej. 9° cuatrimestre"
                       : undefined
                   }
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50 disabled:text-gray-600"
@@ -444,12 +444,12 @@ export default function SolicitudPage() {
                 disabled={solicitudExistente}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50"
               >
-                <option value="">Selecciona una opciÃ³n</option>
+                <option value="">Selecciona una opción</option>
                 <option value="Servicio social">Servicio social</option>
-                <option value="PrÃ¡cticas profesionales">
-                  PrÃ¡cticas profesionales
+                <option value="Prácticas profesionales">
+                  Prácticas profesionales
                 </option>
-                <option value="EstadÃ­a">EstadÃ­a</option>
+                <option value="Estadía">Estadía</option>
                 <option value="Otro">Otro</option>
               </select>
             </div>
@@ -500,18 +500,18 @@ export default function SolicitudPage() {
             </div>
           </div>
 
-          {/* FOTOGRAFÃA */}
+          {/* FOTOGRAFÍA */}
           <div className="mt-6">
             <label
               htmlFor="fotografia"
               className="mb-2 block text-sm font-medium text-vino-oscuro"
             >
-              FotografÃ­a del alumno{" "}
+              Fotografía del alumno{" "}
               <span className="text-red-600">*</span>
             </label>
 
             <p className="mb-3 text-sm leading-6 text-gris-oscuro">
-              Selecciona una fotografÃ­a reciente del alumno. La fotografÃ­a es
+              Selecciona una fotografía reciente del alumno. La fotografía es
               obligatoria para enviar la solicitud.
             </p>
 
@@ -527,7 +527,7 @@ export default function SolicitudPage() {
             />
 
             <p className="mt-2 text-xs text-gray-500">
-              Formatos permitidos: JPG, JPEG o PNG. TamaÃ±o mÃ¡ximo: 5 MB.
+              Formatos permitidos: JPG, JPEG o PNG. Tamaño máximo: 5 MB.
             </p>
 
             {(fotografiaPreview || fotografiaUrl) && (
@@ -535,7 +535,7 @@ export default function SolicitudPage() {
                 <div className="overflow-hidden rounded-lg border border-dorado-claro bg-gray-50 p-2">
                   <img
                     src={fotografiaPreview || fotografiaUrl}
-                    alt="Vista previa de la fotografÃ­a del alumno"
+                    alt="Vista previa de la fotografía del alumno"
                     className="h-48 w-40 object-cover"
                   />
                 </div>
@@ -543,18 +543,18 @@ export default function SolicitudPage() {
             )}
           </div>
 
-          {/* INFORMACIÃ“N ADICIONAL */}
+          {/* INFORMACIÓN ADICIONAL */}
           <div className="mt-6">
             <label
               htmlFor="informacionAdicional"
               className="mb-2 block text-sm font-medium text-vino-oscuro"
             >
-              InformaciÃ³n adicional
+              Información adicional
             </label>
 
             <p className="mb-3 text-sm leading-6 text-gris-oscuro">
-              Puedes proporcionar informaciÃ³n adicional que consideres
-              relevante para tu proceso, como alguna condiciÃ³n que deba ser
+              Puedes proporcionar información adicional que consideres
+              relevante para tu proceso, como alguna condición que deba ser
               tomada en cuenta, necesidades educativas, situaciones particulares
               o disponibilidad para ajustar o adelantar tu fecha de inicio.
             </p>
@@ -566,7 +566,7 @@ export default function SolicitudPage() {
               onChange={handleChange}
               disabled={solicitudExistente}
               rows={5}
-              placeholder="Escribe aquÃ­ la informaciÃ³n que consideres relevante para tu proceso."
+              placeholder="Escribe aquí la información que consideres relevante para tu proceso."
               className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50 disabled:text-gray-600"
             />
           </div>
@@ -579,22 +579,22 @@ export default function SolicitudPage() {
 
             <p className="text-xs leading-5 text-gris-oscuro">
               De conformidad con lo dispuesto en el articulo 38 de la Ley de
-              ProtecciÃ³n de Datos Personales en PosesiÃ³n de los Sujetos
+              Protección de Datos Personales en Posesión de los Sujetos
               Obligados para el Estado de Hidalgo, el Departamento de
-              CapacitaciÃ³n, dependiente de la DirecciÃ³n de Recursos Humanos;
-              serÃ¡ la responsable del uso, protecciÃ³n y tratamiento de sus
-              datos personales, el uso de la informaciÃ³n solicitada es para
-              proveerle los servicios de localizaciÃ³n del o la alumna, en caso
-              de extravio, aclaraciones, omisiones o accidente. De requerirse
+              Capacitación, dependiente de la Dirección de Recursos Humanos;
+              será la responsable del uso, protección y tratamiento de sus
+              datos personales, el uso de la información solicitada es para
+              proveerle los servicios de localización del o la alumna, en caso
+              de extravío, aclaraciones, omisiones o accidente. De requerirse
               hacer alguna transferencia de sus datos personales, para otro
-              fin, se solicitarÃ¡ de su consentimiento y se le harÃ¡ saber la
-              finalidad del mismo, Asimismo usted podrÃ¡ hacer valer sus
-              derechos de acceso, rectificaciÃ³n, cancelaciÃ³n u oposiciÃ³n
+              fin, se solicitará de su consentimiento y se le hará saber la
+              finalidad del mismo, Asimismo usted podrá hacer valer sus
+              derechos de acceso, rectificación, cancelación u oposición
               (ARCO) ante la Unidad de Transparencia, ubicada en Calle M. Vila
               115. Primer piso, Colonia Centro de esta Ciudad, con correo
-              electrÃ³nico uiap@pachuca.gob.mx; y nÃºmero telefÃ³nico (771)
-              6.88.11.61 Usted podrÃ¡ consultar el Aviso de Privacidad Integral
-              en la pÃ¡gina del municipio www.pachuca.gob.mx, asÃ­ como en la
+              electrónico uiap@pachuca.gob.mx; y número telefónico (771)
+              6.88.11.61 Usted podrá consultar el Aviso de Privacidad Integral
+              en la página del municipio www.pachuca.gob.mx, así como en la
               Unidad de Transparencia.
             </p>
           </div>
@@ -612,7 +612,7 @@ export default function SolicitudPage() {
               href="/alumno"
               className="text-sm text-gris-oscuro transition hover:text-vino-oscuro"
             >
-              â† Regresar al panel
+              ← Regresar al panel
             </a>
 
             {!solicitudExistente && (
