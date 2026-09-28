@@ -22,8 +22,12 @@ export default function DecisionSolicitud({
   const [error, setError] = useState("");
 
   const aceptarSolicitud = async () => {
-    setLoading(true);
+    if (estado !== "Pendiente") {
+      setError("Esta solicitud ya no se encuentra pendiente.");
+      return;
+    }
 
+    setLoading(true);
     setError("");
 
     const {
@@ -37,21 +41,22 @@ export default function DecisionSolicitud({
     }
 
     const { error } = await supabase
-  .from("solicitudes")
-  .update({
-    estado: "Aceptada",
-    fecha_respuesta: new Date().toISOString(),
-    revisado_por: user.id,
-    observaciones: null,
-  })
-  .eq("id", solicitudId);
+      .from("solicitudes")
+      .update({
+        estado: "Aceptada",
+        fecha_respuesta: new Date().toISOString(),
+        revisado_por: user.id,
+        observaciones: null,
+      })
+      .eq("id", solicitudId)
+      .eq("estado", "Pendiente");
 
-if (error) {
-  console.error("Error al aceptar solicitud:", error);
-  return;
-}
-
-
+    if (error) {
+      console.error("Error al aceptar solicitud:", error);
+      setError("No fue posible aceptar la solicitud.");
+      setLoading(false);
+      return;
+    }
 
     router.push("/rh");
     router.refresh();
@@ -60,6 +65,11 @@ if (error) {
   const rechazarSolicitud = async () => {
     if (!observaciones.trim()) {
       setError("Debes indicar el motivo del rechazo.");
+      return;
+    }
+
+    if (estado !== "Pendiente") {
+      setError("Esta solicitud ya no se encuentra pendiente.");
       return;
     }
 
@@ -84,10 +94,11 @@ if (error) {
         revisado_por: user.id,
         observaciones: observaciones.trim(),
       })
-      .eq("id", solicitudId);
+      .eq("id", solicitudId)
+      .eq("estado", "Pendiente");
 
     if (error) {
-      console.error(error);
+      console.error("Error al rechazar solicitud:", error);
       setError("No fue posible rechazar la solicitud.");
       setLoading(false);
       return;
@@ -99,7 +110,8 @@ if (error) {
 
   return (
     <div className="space-y-4">
-      {mostrarRechazo && (
+      {/* FORMULARIO DE RECHAZO */}
+      {mostrarRechazo && estado === "Pendiente" && (
         <div className="rounded-xl border border-gray-200 bg-white p-5">
           <label
             htmlFor="observaciones"
@@ -111,10 +123,14 @@ if (error) {
           <textarea
             id="observaciones"
             value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
+            onChange={(e) => {
+              setObservaciones(e.target.value);
+              setError("");
+            }}
             rows={4}
             placeholder="Indica el motivo del rechazo..."
-            className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
+            disabled={loading}
+            className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#9D2449] focus:ring-1 focus:ring-[#9D2449] disabled:bg-gray-100"
           />
 
           {error && (
@@ -131,7 +147,7 @@ if (error) {
                 setError("");
               }}
               disabled={loading}
-              className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-60"
             >
               Cancelar
             </button>
@@ -140,7 +156,7 @@ if (error) {
               type="button"
               onClick={rechazarSolicitud}
               disabled={loading}
-              className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+              className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-60"
             >
               {loading ? "Guardando..." : "Confirmar rechazo"}
             </button>
@@ -148,13 +164,17 @@ if (error) {
         </div>
       )}
 
+      {/* BOTONES DE DECISIÓN */}
       {estado === "Pendiente" && !mostrarRechazo && (
         <div className="flex justify-end gap-3">
           <button
             type="button"
-            onClick={() => setMostrarRechazo(true)}
+            onClick={() => {
+              setMostrarRechazo(true);
+              setError("");
+            }}
             disabled={loading}
-            className="rounded-lg border border-red-300 px-5 py-3 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+            className="rounded-lg border border-red-300 px-5 py-3 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-60"
           >
             Rechazar solicitud
           </button>
@@ -163,19 +183,36 @@ if (error) {
             type="button"
             onClick={aceptarSolicitud}
             disabled={loading}
-            className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-60"
+            className="rounded-lg bg-[#621132] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#9D2449] disabled:opacity-60"
           >
             {loading ? "Guardando..." : "Aceptar solicitud"}
           </button>
         </div>
       )}
-      
-      {estado === "Aceptada" && (
-  <div className="rounded-lg border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-800">
-    Esta solicitud ya fue aceptada.
-  </div>
-)}
 
+      {/* SOLICITUD ACEPTADA */}
+      {estado === "Aceptada" && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-800">
+          Esta solicitud ya fue aceptada. Ahora puedes seleccionar una
+          vacante compatible para continuar con la asignación.
+        </div>
+      )}
+
+      {/* SOLICITUD ASIGNADA */}
+      {estado === "Asignada" && (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-800">
+          Esta solicitud ya fue asignada a un área.
+        </div>
+      )}
+
+      {/* SOLICITUD RECHAZADA */}
+      {estado === "Rechazada" && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+          Esta solicitud fue rechazada.
+        </div>
+      )}
+
+      {/* ERROR GENERAL */}
       {error && !mostrarRechazo && (
         <p className="text-right text-sm text-red-700">
           {error}

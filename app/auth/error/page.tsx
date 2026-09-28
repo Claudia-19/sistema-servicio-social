@@ -1,5 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Suspense } from "react";
+import Link from "next/link";
 
 async function ErrorContent({
   searchParams,
@@ -11,12 +17,12 @@ async function ErrorContent({
   return (
     <>
       {params?.error ? (
-        <p className="text-sm text-muted-foreground">
-          Code error: {params.error}
+        <p className="text-sm leading-6 text-[#707272]">
+          Código del error: {params.error}
         </p>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          An unspecified error occurred.
+        <p className="text-sm leading-6 text-[#707272]">
+          Ocurrió un error inesperado.
         </p>
       )}
     </>
@@ -29,23 +35,47 @@ export default function Page({
   searchParams: Promise<{ error: string }>;
 }) {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">
-                Sorry, something went wrong.
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense>
-                <ErrorContent searchParams={searchParams} />
-              </Suspense>
-            </CardContent>
-          </Card>
+    <main className="min-h-screen bg-gray-50">
+      {/* Encabezado institucional */}
+      <header className="border-b border-[#621132] bg-[#621132]">
+        <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-5">
+          <img
+            src="/logo-pachuca.png"
+            alt="Pachuca Capital de la Transformación"
+            className="h-24 w-auto object-contain"
+          />
         </div>
-      </div>
-    </div>
+      </header>
+
+      {/* Contenido */}
+      <section className="flex min-h-[calc(100vh-130px)] w-full items-center justify-center px-6 py-14">
+        <div className="w-full max-w-xl">
+          <div className="flex flex-col gap-6">
+            <Card className="border border-[#D4C29C] shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl text-[#621132]">
+                  Ocurrió un problema
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent>
+                <Suspense>
+                  <ErrorContent searchParams={searchParams} />
+                </Suspense>
+
+                <div className="mt-6 text-center">
+                  <Link
+                    href="/login"
+                    className="inline-flex rounded-lg bg-[#621132] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#9D2449]"
+                  >
+                    Regresar a iniciar sesión
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

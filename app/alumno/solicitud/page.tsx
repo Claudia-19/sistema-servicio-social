@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -23,54 +23,91 @@ export default function SolicitudPage() {
     informacionAdicional: "",
   });
 
+  const [fotografia, setFotografia] = useState<File | null>(null);
+  const [fotografiaPreview, setFotografiaPreview] = useState("");
+  const [fotografiaUrl, setFotografiaUrl] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [solicitudExistente, setSolicitudExistente] = useState(false);
   const [cargandoSolicitud, setCargandoSolicitud] = useState(true);
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
 
   useEffect(() => {
-  const obtenerSolicitud = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const obtenerSolicitud = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
+      if (!user) {
+        setCargandoSolicitud(false);
+        return;
+      }
+
+      const { data: solicitud } = await supabase
+        .from("solicitudes")
+        .select("*")
+        .eq("usuario_id", user.id)
+        .order("fecha_solicitud", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (solicitud) {
+        setSolicitudExistente(true);
+
+        setFormulario({
+          nombre: solicitud.nombre ?? "",
+          domicilio: solicitud.domicilio ?? "",
+          institucion: solicitud.institucion_educativa ?? "",
+          carrera: solicitud.carrera ?? "",
+          semestre: solicitud.semestre_cuatrimestre ?? "",
+          matricula: solicitud.matricula ?? "",
+          telefono: solicitud.telefono ?? "",
+          correo: solicitud.correo ?? "",
+          tipoProceso: solicitud.tipo_proceso ?? "",
+          fechaInicio: solicitud.fecha_inicio ?? "",
+          horario: solicitud.horario_propuesto ?? "",
+          informacionAdicional: solicitud.informacion_adicional ?? "",
+        });
+
+        /*
+         * La columna fotografia_url ahora puede contener:
+         * 1. Una ruta interna:
+         *    usuario-id/archivo.jpg
+         *
+         * 2. Una URL pÃºblica antigua:
+         *    https://...supabase.co/storage/v1/object/public/fotos-alumnos/usuario-id/archivo.jpg
+         *
+         * Convertimos ambas posibilidades a una ruta de Storage
+         * y generamos una URL firmada.
+         */
+        if (solicitud.fotografia_url) {
+          let rutaFotografia = solicitud.fotografia_url;
+
+          if (rutaFotografia.includes("/storage/v1/object/public/fotos-alumnos/")) {
+            rutaFotografia = rutaFotografia.split(
+              "/storage/v1/object/public/fotos-alumnos/"
+            )[1];
+          }
+
+          if (rutaFotografia) {
+            const { data: signedUrlData, error: signedUrlError } =
+              await supabase.storage
+                .from("fotos-alumnos")
+                .createSignedUrl(rutaFotografia, 60 * 60);
+
+            if (!signedUrlError && signedUrlData?.signedUrl) {
+              setFotografiaUrl(signedUrlData.signedUrl);
+            }
+          }
+        }
+      }
+
       setCargandoSolicitud(false);
-      return;
-    }
+    };
 
-    const { data: solicitud } = await supabase
-      .from("solicitudes")
-      .select("*")
-      .eq("usuario_id", user.id)
-      .order("fecha_solicitud", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (solicitud) {
-      setSolicitudExistente(true);
-
-      setFormulario({
-        nombre: solicitud.nombre ?? "",
-        domicilio: solicitud.domicilio ?? "",
-        institucion: solicitud.institucion_educativa ?? "",
-        carrera: solicitud.carrera ?? "",
-        semestre: solicitud.semestre_cuatrimestre ?? "",
-        matricula: solicitud.matricula ?? "",
-        telefono: solicitud.telefono ?? "",
-        correo: solicitud.correo ?? "",
-        tipoProceso: solicitud.tipo_proceso ?? "",
-        fechaInicio: solicitud.fecha_inicio ?? "",
-        horario: solicitud.horario_propuesto ?? "",
-        informacionAdicional: solicitud.informacion_adicional ?? "",
-      });
-    }
-
-    setCargandoSolicitud(false);
-  };
-
-  obtenerSolicitud();
-}, [supabase]);
+    obtenerSolicitud();
+  }, [supabase]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -81,6 +118,38 @@ export default function SolicitudPage() {
       ...formulario,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleFotografiaChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const archivo = e.target.files?.[0];
+
+    if (!archivo) {
+      setFotografia(null);
+      setFotografiaPreview("");
+      return;
+    }
+
+    if (!archivo.type.startsWith("image/")) {
+      setError("La fotografÃ­a debe ser un archivo de imagen.");
+      e.target.value = "";
+      setFotografia(null);
+      setFotografiaPreview("");
+      return;
+    }
+
+    if (archivo.size > 5 * 1024 * 1024) {
+      setError("La fotografÃ­a no debe superar los 5 MB.");
+      e.target.value = "";
+      setFotografia(null);
+      setFotografiaPreview("");
+      return;
+    }
+
+    setError("");
+    setFotografia(archivo);
+    setFotografiaPreview(URL.createObjectURL(archivo));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -95,11 +164,49 @@ export default function SolicitudPage() {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      setError("Tu sesión ha expirado. Inicia sesión nuevamente.");
+      setError("Tu sesiÃ³n ha expirado. Inicia sesiÃ³n nuevamente.");
       setLoading(false);
       return;
     }
 
+    if (!fotografia) {
+      setError(
+        "Debes seleccionar una fotografÃ­a para enviar la solicitud."
+      );
+      setLoading(false);
+      return;
+    }
+
+    const extension =
+      fotografia.name.split(".").pop()?.toLowerCase() || "jpg";
+
+    const nombreArchivo = `${user.id}-${Date.now()}.${extension}`;
+    const rutaFotografia = `${user.id}/${nombreArchivo}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("fotos-alumnos")
+      .upload(rutaFotografia, fotografia, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: fotografia.type,
+      });
+
+    if (uploadError) {
+      console.error(uploadError);
+
+      setError(
+        "No fue posible subir la fotografÃ­a. IntÃ©ntalo nuevamente."
+      );
+
+      setLoading(false);
+      return;
+    }
+
+    /*
+     * IMPORTANTE:
+     * Como el bucket es privado, ya NO guardamos getPublicUrl().
+     * Guardamos Ãºnicamente la ruta interna del archivo.
+     */
     const { error: insertError } = await supabase
       .from("solicitudes")
       .insert({
@@ -116,238 +223,214 @@ export default function SolicitudPage() {
         fecha_inicio: formulario.fechaInicio,
         horario_propuesto: formulario.horario,
         informacion_adicional: formulario.informacionAdicional,
+        fotografia_url: rutaFotografia,
       });
 
     if (insertError) {
       console.error(insertError);
-      setError("No fue posible enviar la solicitud. Inténtalo nuevamente.");
+
+      await supabase.storage
+        .from("fotos-alumnos")
+        .remove([rutaFotografia]);
+
+      setError(
+        "No fue posible enviar la solicitud. IntÃ©ntalo nuevamente."
+      );
+
       setLoading(false);
       return;
     }
 
-    router.push("/alumno");
-    router.refresh();
-  };
-if (cargandoSolicitud) {
-  return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <p className="text-sm text-gray-600">
-          Cargando tu solicitud...
-        </p>
-      </div>
-    </main>
-  );
-}
-  return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-5xl px-6 py-5">
-          <h1 className="text-xl font-bold text-gray-900">
-            Sistema de Control de Servicio Social
-          </h1>
+    /*
+     * Generamos una URL firmada para mostrar inmediatamente
+     * la fotografÃ­a al alumno.
+     */
+    const { data: signedUrlData } = await supabase.storage
+      .from("fotos-alumnos")
+      .createSignedUrl(rutaFotografia, 60 * 60);
 
-          <p className="text-sm text-gray-500">
-            Solicitud de servicio social
+    setFotografiaUrl(signedUrlData?.signedUrl ?? "");
+    setSolicitudEnviada(true);
+    setLoading(false);
+  };
+
+  if (cargandoSolicitud) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <header className="border-b border-[#621132] bg-[#621132]">
+          <div className="mx-auto max-w-7xl px-6 py-3">
+            <img
+              src="/logo-pachuca.png"
+              alt="Pachuca Capital de la TransformaciÃ³n"
+              className="h-16 w-auto object-contain"
+            />
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-5xl px-6 py-10">
+          <p className="text-sm text-gris-oscuro">
+            Cargando tu solicitud...
           </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (solicitudEnviada) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        {/* ENCABEZADO INSTITUCIONAL */}
+        <header className="border-b border-[#621132] bg-[#621132]">
+          <div className="mx-auto max-w-7xl px-6 py-3">
+            <img
+              src="/logo-pachuca.png"
+              alt="Pachuca Capital de la TransformaciÃ³n"
+              className="h-16 w-auto object-contain"
+            />
+          </div>
+        </header>
+
+        {/* CONFIRMACIÃ“N */}
+        <section className="flex min-h-[calc(100vh-88px)] items-center justify-center px-6 py-12">
+          <div className="w-full max-w-2xl">
+            <div className="rounded-xl border border-dorado-claro bg-white p-8 text-center shadow-sm sm:p-10">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#D4C29C]">
+                <span className="text-3xl text-vino-oscuro">âœ“</span>
+              </div>
+
+              <h2 className="text-3xl font-bold text-vino-oscuro">
+                Â¡Solicitud recibida!
+              </h2>
+
+              <p className="mt-5 text-base leading-7 text-gris-oscuro">
+                Tu solicitud ha sido registrada correctamente.
+              </p>
+
+              <p className="mt-3 text-base leading-7 text-gris-oscuro">
+                El{" "}
+                <strong className="text-vino-oscuro">
+                  Departamento de ProfesionalizaciÃ³n
+                </strong>{" "}
+                atenderÃ¡ tu solicitud en un plazo mÃ¡ximo de{" "}
+                <strong className="text-vino-oscuro">
+                  dos dÃ­as hÃ¡biles
+                </strong>
+                .
+              </p>
+
+              <p className="mt-3 text-base leading-7 text-gris-oscuro">
+                Te recomendamos estar pendiente de tu{" "}
+                <strong className="text-vino-oscuro">
+                  correo electrÃ³nico
+                </strong>
+                , ya que recibirÃ¡s informaciÃ³n relacionada con el seguimiento
+                de tu solicitud.
+              </p>
+
+              <div className="mt-8">
+                <button
+                  onClick={() => {
+                    router.push("/alumno");
+                    router.refresh();
+                  }}
+                  className="rounded-lg bg-vino-oscuro px-6 py-3 font-medium text-white transition hover:bg-vino-claro"
+                >
+                  Volver a mi perfil
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <header className="border-b border-[#621132] bg-[#621132]">
+        <div className="mx-auto max-w-7xl px-6 py-3">
+          <img
+            src="/logo-pachuca.png"
+            alt="Pachuca Capital de la TransformaciÃ³n"
+            className="h-16 w-auto object-contain"
+          />
         </div>
       </header>
 
       <section className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+          <p className="text-sm font-semibold uppercase tracking-wider text-vino-claro">
             Alumno / Prestador
           </p>
 
-          <h2 className="mt-2 text-3xl font-bold text-gray-900">
+          <h2 className="mt-2 text-3xl font-bold text-vino-oscuro">
             Solicitud
           </h2>
 
-          <p className="mt-2 text-gray-600">
-            Completa la información solicitada para iniciar tu proceso.
+          <p className="mt-2 text-gris-oscuro">
+            Completa la informaciÃ³n solicitada para iniciar tu proceso.
           </p>
         </div>
 
+        {/* FORMULARIO */}
         <form
           onSubmit={handleSubmit}
-          className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+          className="rounded-xl border border-dorado-claro bg-white p-8 shadow-sm"
         >
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <div className="mb-4 h-1 w-12 rounded-full bg-vino-oscuro" />
+
+            <h3 className="text-lg font-semibold text-vino-oscuro">
               Datos del alumno
             </h3>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Proporciona tus datos personales y académicos.
+            <p className="mt-1 text-sm text-gris-oscuro">
+              Proporciona tus datos personales y acadÃ©micos.
             </p>
           </div>
 
           <div className="mt-6 grid gap-6 md:grid-cols-2">
-            <div>
-              <label
-                htmlFor="nombre"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Nombre completo
-              </label>
+            {[
+              ["nombre", "Nombre completo", "text"],
+              ["domicilio", "Domicilio", "text"],
+              ["institucion", "InstituciÃ³n educativa", "text"],
+              ["carrera", "Carrera", "text"],
+              ["semestre", "Semestre / Cuatrimestre", "text"],
+              ["matricula", "MatrÃ­cula / NÃºmero de control", "text"],
+              ["telefono", "TelÃ©fono celular", "tel"],
+              ["correo", "Correo electrÃ³nico", "email"],
+            ].map(([name, label, type]) => (
+              <div key={name}>
+                <label
+                  htmlFor={name}
+                  className="mb-2 block text-sm font-medium text-vino-oscuro"
+                >
+                  {label}
+                </label>
 
-              <input
-                id="nombre"
-                name="nombre"
-                type="text"
-                value={formulario.nombre}
-                onChange={handleChange}
-                required
-                disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
-            </div>
+                <input
+                  id={name}
+                  name={name}
+                  type={type}
+                  value={formulario[name as keyof typeof formulario]}
+                  onChange={handleChange}
+                  required
+                  disabled={solicitudExistente}
+                  placeholder={
+                    name === "semestre"
+                      ? "Ej. 9Â° cuatrimestre"
+                      : undefined
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50 disabled:text-gray-600"
+                />
+              </div>
+            ))}
 
-            <div>
-              <label
-                htmlFor="domicilio"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Domicilio
-              </label>
-
-              <input
-                id="domicilio"
-                name="domicilio"
-                type="text"
-                value={formulario.domicilio}
-                onChange={handleChange}
-                required
-                disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="institucion"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Institución educativa
-              </label>
-
-              <input
-                id="institucion"
-                name="institucion"
-                type="text"
-                value={formulario.institucion}
-                onChange={handleChange}
-                required
-                disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="carrera"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Carrera
-              </label>
-
-              <input
-                id="carrera"
-                name="carrera"
-                type="text"
-                value={formulario.carrera}
-                onChange={handleChange}
-                required
-                disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="semestre"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Semestre / Cuatrimestre
-              </label>
-
-              <input
-                id="semestre"
-                name="semestre"
-                type="text"
-                value={formulario.semestre}
-                onChange={handleChange}
-                required
-                disabled={solicitudExistente}
-                placeholder="Ej. 9° cuatrimestre"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="matricula"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Matrícula / Número de control
-              </label>
-
-              <input
-                id="matricula"
-                name="matricula"
-                type="text"
-                value={formulario.matricula}
-                onChange={handleChange}
-                required
-                disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="telefono"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Teléfono celular
-              </label>
-
-              <input
-                id="telefono"
-                name="telefono"
-                type="tel"
-                value={formulario.telefono}
-                onChange={handleChange}
-                required
-                disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="correo"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Correo electrónico
-              </label>
-
-              <input
-                id="correo"
-                name="correo"
-                type="email"
-                value={formulario.correo}
-                onChange={handleChange}
-                required
-                disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
-            </div>
-
+            {/* TIPO DE PROCESO */}
             <div>
               <label
                 htmlFor="tipoProceso"
-                className="mb-2 block text-sm font-medium text-gray-700"
+                className="mb-2 block text-sm font-medium text-vino-oscuro"
               >
                 Tipo de proceso
               </label>
@@ -359,22 +442,23 @@ if (cargandoSolicitud) {
                 onChange={handleChange}
                 required
                 disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none focus:border-gray-500"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50"
               >
-                <option value="">Selecciona una opción</option>
+                <option value="">Selecciona una opciÃ³n</option>
                 <option value="Servicio social">Servicio social</option>
-                <option value="Prácticas profesionales">
-                  Prácticas profesionales
+                <option value="PrÃ¡cticas profesionales">
+                  PrÃ¡cticas profesionales
                 </option>
-                <option value="Estadía">Estadía</option>
+                <option value="EstadÃ­a">EstadÃ­a</option>
                 <option value="Otro">Otro</option>
               </select>
             </div>
 
+            {/* FECHA */}
             <div>
               <label
                 htmlFor="fechaInicio"
-                className="mb-2 block text-sm font-medium text-gray-700"
+                className="mb-2 block text-sm font-medium text-vino-oscuro"
               >
                 Fecha de inicio
               </label>
@@ -387,74 +471,159 @@ if (cargandoSolicitud) {
                 onChange={handleChange}
                 required
                 disabled={solicitudExistente}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50"
               />
             </div>
 
+            {/* HORARIO */}
             <div>
               <label
                 htmlFor="horario"
-                className="mb-2 block text-sm font-medium text-gray-700"
+                className="mb-2 block text-sm font-medium text-vino-oscuro"
               >
                 Horario propuesto
               </label>
 
-              <input
+              <select
                 id="horario"
                 name="horario"
-                type="text"
                 value={formulario.horario}
                 onChange={handleChange}
                 required
                 disabled={solicitudExistente}
-                placeholder="Ej. 9:00 a 15:00"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
-              />
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50 disabled:text-gray-600"
+              >
+                <option value="">Selecciona un horario</option>
+                <option value="Matutino">Matutino</option>
+                <option value="Vespertino">Vespertino</option>
+              </select>
             </div>
           </div>
 
+          {/* FOTOGRAFÃA */}
+          <div className="mt-6">
+            <label
+              htmlFor="fotografia"
+              className="mb-2 block text-sm font-medium text-vino-oscuro"
+            >
+              FotografÃ­a del alumno{" "}
+              <span className="text-red-600">*</span>
+            </label>
+
+            <p className="mb-3 text-sm leading-6 text-gris-oscuro">
+              Selecciona una fotografÃ­a reciente del alumno. La fotografÃ­a es
+              obligatoria para enviar la solicitud.
+            </p>
+
+            <input
+              id="fotografia"
+              name="fotografia"
+              type="file"
+              accept="image/jpeg,image/png,image/jpg"
+              onChange={handleFotografiaChange}
+              required={!solicitudExistente}
+              disabled={solicitudExistente}
+              className="w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-vino-oscuro file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-vino-claro disabled:cursor-not-allowed disabled:bg-gray-50"
+            />
+
+            <p className="mt-2 text-xs text-gray-500">
+              Formatos permitidos: JPG, JPEG o PNG. TamaÃ±o mÃ¡ximo: 5 MB.
+            </p>
+
+            {(fotografiaPreview || fotografiaUrl) && (
+              <div className="mt-5 flex justify-center">
+                <div className="overflow-hidden rounded-lg border border-dorado-claro bg-gray-50 p-2">
+                  <img
+                    src={fotografiaPreview || fotografiaUrl}
+                    alt="Vista previa de la fotografÃ­a del alumno"
+                    className="h-48 w-40 object-cover"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* INFORMACIÃ“N ADICIONAL */}
           <div className="mt-6">
             <label
               htmlFor="informacionAdicional"
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="mb-2 block text-sm font-medium text-vino-oscuro"
             >
-              Información adicional
+              InformaciÃ³n adicional
             </label>
+
+            <p className="mb-3 text-sm leading-6 text-gris-oscuro">
+              Puedes proporcionar informaciÃ³n adicional que consideres
+              relevante para tu proceso, como alguna condiciÃ³n que deba ser
+              tomada en cuenta, necesidades educativas, situaciones particulares
+              o disponibilidad para ajustar o adelantar tu fecha de inicio.
+            </p>
 
             <textarea
               id="informacionAdicional"
               name="informacionAdicional"
               value={formulario.informacionAdicional}
               onChange={handleChange}
+              disabled={solicitudExistente}
               rows={5}
-              placeholder="Escribe información adicional que consideres importante."
-              className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
+              placeholder="Escribe aquÃ­ la informaciÃ³n que consideres relevante para tu proceso."
+              className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50 disabled:text-gray-600"
             />
           </div>
 
+          {/* AVISO DE PRIVACIDAD */}
+          <div className="mt-8 rounded-lg border border-dorado-claro bg-gray-50 p-5">
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-vino-oscuro">
+              Aviso de privacidad
+            </h3>
+
+            <p className="text-xs leading-5 text-gris-oscuro">
+              De conformidad con lo dispuesto en el articulo 38 de la Ley de
+              ProtecciÃ³n de Datos Personales en PosesiÃ³n de los Sujetos
+              Obligados para el Estado de Hidalgo, el Departamento de
+              CapacitaciÃ³n, dependiente de la DirecciÃ³n de Recursos Humanos;
+              serÃ¡ la responsable del uso, protecciÃ³n y tratamiento de sus
+              datos personales, el uso de la informaciÃ³n solicitada es para
+              proveerle los servicios de localizaciÃ³n del o la alumna, en caso
+              de extravio, aclaraciones, omisiones o accidente. De requerirse
+              hacer alguna transferencia de sus datos personales, para otro
+              fin, se solicitarÃ¡ de su consentimiento y se le harÃ¡ saber la
+              finalidad del mismo, Asimismo usted podrÃ¡ hacer valer sus
+              derechos de acceso, rectificaciÃ³n, cancelaciÃ³n u oposiciÃ³n
+              (ARCO) ante la Unidad de Transparencia, ubicada en Calle M. Vila
+              115. Primer piso, Colonia Centro de esta Ciudad, con correo
+              electrÃ³nico uiap@pachuca.gob.mx; y nÃºmero telefÃ³nico (771)
+              6.88.11.61 Usted podrÃ¡ consultar el Aviso de Privacidad Integral
+              en la pÃ¡gina del municipio www.pachuca.gob.mx, asÃ­ como en la
+              Unidad de Transparencia.
+            </p>
+          </div>
+
+          {/* ERROR */}
           {error && (
             <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
             </div>
           )}
 
-          <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
+          {/* ACCIONES */}
+          <div className="mt-8 flex items-center justify-between border-t border-dorado-claro pt-6">
             <a
               href="/alumno"
-              className="text-sm text-gray-500 hover:text-gray-900"
+              className="text-sm text-gris-oscuro transition hover:text-vino-oscuro"
             >
-              ← Regresar al panel
+              â† Regresar al panel
             </a>
 
             {!solicitudExistente && (
-  <button
-    type="submit"
-    disabled={loading}
-    className="rounded-lg bg-gray-900 px-6 py-3 font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
-  >
-    {loading ? "Enviando..." : "Enviar solicitud"}
-  </button>
-)}
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-lg bg-vino-oscuro px-6 py-3 font-medium text-white transition hover:bg-vino-claro disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Enviando..." : "Enviar solicitud"}
+              </button>
+            )}
           </div>
         </form>
       </section>

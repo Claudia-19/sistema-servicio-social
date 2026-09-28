@@ -2,11 +2,17 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BotonImprimir from "@/components/BotonImprimir";
 
-export default async function ImprimirSolicitudPage({
+export const instant = false;
+
+type Props = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export default async function ImprimirSolicitudRHPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: Props) {
   const supabase = await createClient();
 
   const {
@@ -17,20 +23,35 @@ export default async function ImprimirSolicitudPage({
     redirect("/login");
   }
 
-  // Verificar que sea Recursos Humanos
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("rol_id")
-    .eq("id", user.id)
-    .single();
+  const { id } = await params;
+  const solicitudId = Number(id);
 
-  if (!usuario || usuario.rol_id !== 2) {
-    redirect("/dashboard");
+  if (!Number.isInteger(solicitudId)) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="rounded-xl border border-dorado-claro bg-white p-8 text-center shadow-sm">
+          <h1 className="text-xl font-bold text-vino-oscuro">
+            Solicitud no válida
+          </h1>
+
+          <p className="mt-2 text-sm text-gris-oscuro">
+            El identificador de la solicitud no es válido.
+          </p>
+
+          <a
+            href="/rh"
+            className="mt-5 inline-block rounded-lg bg-vino-oscuro px-5 py-2.5 text-sm font-medium text-white transition hover:bg-vino-claro"
+          >
+            Regresar a Recursos Humanos
+          </a>
+        </div>
+      </main>
+    );
   }
 
-  const { id } = await params;
-
-  // Obtener solicitud
+  // ============================================================
+  // OBTENER LA SOLICITUD ESPECÍFICA
+  // ============================================================
   const { data: solicitud, error } = await supabase
     .from("solicitudes")
     .select(`
@@ -44,27 +65,68 @@ export default async function ImprimirSolicitudPage({
       telefono,
       correo,
       tipo_proceso,
+      fecha_solicitud,
       fecha_inicio,
       horario_propuesto,
       informacion_adicional,
-      estado
+      estado,
+      fotografia_url
     `)
-    .eq("id", id)
-    .single();
+    .eq("id", solicitudId)
+    .maybeSingle();
 
   if (error || !solicitud) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="rounded-xl border border-red-200 bg-white p-8 text-center">
-          <h1 className="text-xl font-bold text-red-700">
+        <div className="rounded-xl border border-dorado-claro bg-white p-8 text-center shadow-sm">
+          <h1 className="text-xl font-bold text-vino-oscuro">
             No se encontró la solicitud
           </h1>
+
+          <p className="mt-2 text-sm text-gris-oscuro">
+            No existe una solicitud registrada con el identificador indicado.
+          </p>
+
+          <a
+            href="/rh"
+            className="mt-5 inline-block rounded-lg bg-vino-oscuro px-5 py-2.5 text-sm font-medium text-white transition hover:bg-vino-claro"
+          >
+            Regresar a Recursos Humanos
+          </a>
         </div>
       </main>
     );
   }
 
-  // Obtener asignación autorizada
+  // ============================================================
+  // OBTENER FOTO DEL ALUMNO
+  // ============================================================
+  let fotografiaUrl: string | null = null;
+
+  if (solicitud.fotografia_url) {
+    const fotografia = solicitud.fotografia_url;
+
+    // Si por alguna razón todavía existe una URL completa,
+    // se utiliza directamente.
+    if (
+      fotografia.startsWith("http://") ||
+      fotografia.startsWith("https://")
+    ) {
+      fotografiaUrl = fotografia;
+    } else {
+      // El bucket fotos-alumnos es privado,
+      // por lo que generamos una URL firmada.
+      const { data: signedPhoto } = await supabase.storage
+        .from("fotos-alumnos")
+        .createSignedUrl(fotografia, 60 * 60);
+
+      fotografiaUrl = signedPhoto?.signedUrl ?? null;
+    }
+  }
+
+  // ============================================================
+  // OBTENER ASIGNACIÓN AUTORIZADA
+  // ============================================================
   const { data: asignacion } = await supabase
     .from("asignaciones")
     .select("id, necesidad_id, estado")
@@ -72,13 +134,15 @@ export default async function ImprimirSolicitudPage({
     .eq("estado", "Autorizada")
     .maybeSingle();
 
-  // Obtener área asignada
+  // ============================================================
+  // OBTENER ÁREA DE ADSCRIPCIÓN Y ÁREA ASIGNADA
+  // ============================================================
   let area = "Área asignada";
 
   if (asignacion?.necesidad_id) {
     const { data: necesidad } = await supabase
       .from("necesidades")
-      .select("area_id")
+      .select("area_id, area_asignada")
       .eq("id", asignacion.necesidad_id)
       .maybeSingle();
 
@@ -89,65 +153,128 @@ export default async function ImprimirSolicitudPage({
         .eq("id", necesidad.area_id)
         .maybeSingle();
 
-      area = areaData?.nombre ?? "Área asignada";
+      const nombreArea = areaData?.nombre ?? "";
+      const areaAsignada = necesidad.area_asignada?.trim() ?? "";
+
+      if (nombreArea && areaAsignada) {
+        area = `${nombreArea} — ${areaAsignada}`;
+      } else if (nombreArea) {
+        area = nombreArea;
+      } else if (areaAsignada) {
+        area = areaAsignada;
+      }
+    } else if (necesidad?.area_asignada?.trim()) {
+      area = necesidad.area_asignada.trim();
     }
   }
 
-  // Formato de fecha día/mes/año
+  // ============================================================
+  // FECHA DE INICIO
+  // ============================================================
   const fechaInicio = solicitud.fecha_inicio
     ? new Date(
         solicitud.fecha_inicio + "T00:00:00"
       ).toLocaleDateString("es-MX")
     : "";
 
-  // Determinar el tipo de proceso
+  // ============================================================
+  // FECHA DE SOLICITUD
+  // ============================================================
+  const fechaSolicitud = solicitud.fecha_solicitud
+    ? new Date(solicitud.fecha_solicitud).toLocaleDateString("es-MX", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+
+  // ============================================================
+  // TIPO DE PROCESO
+  // ============================================================
   const tipoProceso = solicitud.tipo_proceso?.toLowerCase();
 
-  const esServicioSocial = tipoProceso === "servicio social";
-  const esPracticas = tipoProceso === "prácticas profesionales";
-  const esEstadia = tipoProceso === "estadia" || tipoProceso === "estadía";
+  const esServicioSocial =
+    tipoProceso === "servicio social";
+
+  const esPracticas =
+    tipoProceso === "prácticas profesionales";
+
+  const esEstadia =
+    tipoProceso === "estadia" ||
+    tipoProceso === "estadía";
 
   return (
     <>
-      {/* Botón */}
+      {/* ========================================================
+          BOTONES
+      ========================================================= */}
       <div className="print:hidden mx-auto max-w-5xl px-6 py-5">
-        <BotonImprimir />
+        <div className="flex items-center justify-between gap-4">
+          <a
+            href={`/rh/solicitud/${solicitud.id}`}
+            className="rounded-lg border border-[#707272]/40 bg-white px-5 py-3 text-sm font-medium text-gris-oscuro transition hover:bg-[#D4C29C]/20 hover:text-vino-oscuro"
+          >
+            ← Regresar a la solicitud
+          </a>
+
+          <BotonImprimir />
+        </div>
       </div>
 
-      {/* DOCUMENTO */}
+      {/* ========================================================
+          DOCUMENTO
+      ========================================================= */}
       <main className="mx-auto w-full max-w-[21cm] bg-white px-[1.2cm] py-[0.8cm] text-[10px] text-black">
 
-        {/* =========================
+        {/* ======================================================
             ENCABEZADO
-        ========================== */}
-        <div className="relative">
+        ======================================================= */}
+        <div className="relative min-h-[105px]">
 
-          {/* Logo institucional */}
+          {/* LOGO PACHUCA */}
           <div className="absolute left-0 top-0">
             <img
-              src="/logo-pachuca.jpg"
+              src="/logo-pachuca.png"
               alt="Pachuca Capital de la Transformación"
-              className="h-[55px] w-auto object-contain"
+              className="h-[70px] w-auto object-contain"
             />
           </div>
 
-          {/* Fecha */}
-          <div className="flex justify-end pt-[5px] text-[10px]">
-            Pachuca de Soto, Hidalgo; a ____ de __________ del 20____
+          {/* FOTO DEL ALUMNO */}
+          <div className="absolute right-0 top-0 flex h-[105px] w-[82px] items-start justify-center">
+            {fotografiaUrl ? (
+              <img
+                src={fotografiaUrl}
+                alt={`Fotografía de ${solicitud.nombre}`}
+                className="h-[105px] w-[82px] rounded-none border border-black object-cover"
+              />
+            ) : (
+              <div className="flex h-[105px] w-[82px] items-center justify-center border border-black text-center text-[8px] text-gray-500">
+                Sin fotografía
+              </div>
+            )}
           </div>
 
-          <div className="pt-[38px]">
+          {/* FECHA */}
+          <div className="flex justify-end pt-[72px] pr-[95px] text-[10px]">
+            Pachuca de Soto, Hidalgo; a{" "}
+            {fechaSolicitud || "____ de __________ del 20____"}
+          </div>
+
+          {/* TÍTULO */}
+          <div className="pt-[8px]">
             <h1 className="text-[14px] font-bold uppercase">
               DATOS PERSONALES DE LOS PRESTATARIOS/AS
             </h1>
 
-            {/* Tipo de proceso */}
+            {/* TIPO DE PROCESO */}
             <div className="mt-3 flex items-center gap-5 text-[10px]">
 
               <div className="flex items-center gap-1">
                 <span className="inline-block h-[14px] w-[14px] border border-black">
                   {esServicioSocial ? "✓" : ""}
                 </span>
+
                 <span>Servicio Social</span>
               </div>
 
@@ -155,6 +282,7 @@ export default async function ImprimirSolicitudPage({
                 <span className="inline-block h-[14px] w-[14px] border border-black">
                   {esPracticas ? "✓" : ""}
                 </span>
+
                 <span>Prácticas Profesionales</span>
               </div>
 
@@ -162,24 +290,26 @@ export default async function ImprimirSolicitudPage({
                 <span className="inline-block h-[14px] w-[14px] border border-black">
                   {esEstadia ? "✓" : ""}
                 </span>
+
                 <span>Estadía</span>
               </div>
 
               <div className="flex items-center gap-1">
                 <span className="inline-block h-[14px] w-[14px] border border-black">
                 </span>
+
                 <span>Otro:</span>
+
                 <span className="inline-block w-[70px] border-b border-black">
                 </span>
               </div>
-
             </div>
           </div>
         </div>
 
-        {/* =========================
+        {/* ======================================================
             DATOS GENERALES
-        ========================== */}
+        ======================================================= */}
         <table className="mt-3 w-full border-collapse border border-black">
           <thead>
             <tr>
@@ -193,112 +323,121 @@ export default async function ImprimirSolicitudPage({
           </thead>
 
           <tbody>
-
             <tr>
-              <td className="w-[31%] border border-black px-2 py-[3px]">
+              <td className="w-[31%] border border-black px-2 py-[3px] font-bold">
                 Nombre:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {solicitud.nombre}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Domicilio Particular:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {solicitud.domicilio}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Institución Educativa:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {solicitud.institucion_educativa}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Carrera y semestre:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {solicitud.carrera} — {solicitud.semestre_cuatrimestre}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 No. de control o matrícula:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {solicitud.matricula}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Teléfono celular y de casa:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {solicitud.telefono}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Correo Electrónico:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {solicitud.correo}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Fecha de Inicio:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {fechaInicio}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Horario propuesto:
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {solicitud.horario_propuesto}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px] align-top">
+              <td className="border border-black px-2 py-[3px] align-top font-bold">
                 Información Adicional:
               </td>
+
               <td className="h-[42px] border border-black px-2 py-[3px] align-top">
                 {solicitud.informacion_adicional || ""}
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Área en la que fue asignado(a):
               </td>
+
               <td className="border border-black px-2 py-[3px]">
                 {area}
               </td>
             </tr>
-
           </tbody>
         </table>
 
-        {/* =========================
+        {/* ======================================================
             REFERENCIAS PERSONALES
-        ========================== */}
+        ======================================================= */}
         <table className="mt-2 w-full border-collapse border border-black">
           <thead>
             <tr>
@@ -312,53 +451,56 @@ export default async function ImprimirSolicitudPage({
           </thead>
 
           <tbody>
-
             <tr>
-              <td className="w-[31%] border border-black px-2 py-[3px] italic">
+              <td className="w-[31%] border border-black px-2 py-[3px] font-bold">
                 Nombre del Papá
               </td>
+
               <td className="border border-black px-2 py-[3px]">
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px] italic">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Teléfono donde se puede localizar:
               </td>
+
               <td className="border border-black">
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px] italic">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Nombre de la Mamá
               </td>
+
               <td className="border border-black">
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px] italic">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Teléfono donde se puede localizar:
               </td>
+
               <td className="border border-black">
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px] italic">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Nombre del tutor en su caso:
               </td>
+
               <td className="border border-black">
               </td>
             </tr>
-
           </tbody>
         </table>
 
-        {/* =========================
+        {/* ======================================================
             PERSONAS DE EMERGENCIA
-        ========================== */}
+        ======================================================= */}
         <table className="w-full border-collapse border border-black">
           <thead>
             <tr>
@@ -372,52 +514,54 @@ export default async function ImprimirSolicitudPage({
           </thead>
 
           <tbody>
-
             <tr>
-              <td className="w-[31%] border border-black px-2 py-[3px]">
+              <td className="w-[31%] border border-black px-2 py-[3px] font-bold">
                 Nombre y parentesco:
               </td>
+
               <td className="border border-black">
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px] italic">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Teléfono donde se puede localizar:
               </td>
+
               <td className="border border-black">
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px]">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Nombre y parentesco:
               </td>
+
               <td className="border border-black">
               </td>
             </tr>
 
             <tr>
-              <td className="border border-black px-2 py-[3px] italic">
+              <td className="border border-black px-2 py-[3px] font-bold">
                 Teléfono donde se puede localizar:
               </td>
+
               <td className="border border-black">
               </td>
             </tr>
-
           </tbody>
         </table>
 
-        {/* =========================
+        {/* ======================================================
             RATIFICACIÓN
-        ========================== */}
+        ======================================================= */}
         <p className="mt-2 text-[10px]">
           Ratifico que los datos aquí asentados son verdaderos
         </p>
 
-        {/* =========================
+        {/* ======================================================
             FIRMA
-        ========================== */}
+        ======================================================= */}
         <div className="mt-5 text-center">
           <div className="mx-auto w-[270px] border-b border-black">
             &nbsp;
@@ -428,52 +572,42 @@ export default async function ImprimirSolicitudPage({
           </p>
         </div>
 
-        {/* =========================
+        {/* ======================================================
             AVISO DE PRIVACIDAD
-        ========================== */}
+        ======================================================= */}
         <section className="mt-4 text-center">
-
           <h3 className="text-[10px] font-bold">
             AVISO DE PRIVACIDAD
           </h3>
 
           <p className="mt-1 text-justify text-[7px] leading-[1.25]">
-            De conformidad con lo dispuesto en el articulo 36 de la Ley de
-            Protección de Datos Personales en Posesión de los Sujetos Obligados
-            para el Estado de Hidalgo ei Departamento de Capacitación,
-            dependiente de la Dirección de Recursos Humanos: será la responsable
-            del uso, protección y tratamiento de sus datos personales. el uso de
-            la información solicitada es para proveerle los servicios de
-            localización del o la alumna, en caso de extravio, aclaraciones,
-            omisiones o accidente. De requerinse hacer alguna transferencia de
-            sus datos personales, para otro fin, se solicitară de su
-            consentimiento y se le hará saber la fralidad del mano, Asimismo
+            De conformidad con lo dispuesto en el articulo 38 de la Ley de
+            Protección de Datos Personales en Posesión de los Sujetos
+            Obligados para el Estado de Hidalgo, el Departamento de
+            Capacitación, dependiente de la Dirección de Recursos Humanos;
+            será la responsable del uso, protección y tratamiento de sus
+            datos personales, el uso de la información solicitada es para
+            proveerle los servicios de localización del o la alumna, en caso
+            de extravio, aclaraciones, omisiones o accidente. De requerirse
+            hacer alguna transferencia de sus datos personales, para otro
+            fin, se solicitară de su consentimiento y se le hará saber la
+            finalidad del mismo, Asimismo usted podrá hacer valer sus
+            derechos de acceso, rectificación, cancelación u oposición
+            (ARCO) ante la Unidad de Transparencia, ubicada en Calle M.
+            Vila 115. Primer piso, Colonia Centro de esta Cuidad, con
+            correo electrónico uiap@pachuca.gob.mx; у пúmero telefónico
+            (771) 6.88.11.61 Usted podrá consultar el Aviso de Privacidad
+            Integral en la página del municipio www.pachuca.gob.mx, así como
+            en la Unidad de Transparencia.
           </p>
-
-          <p className="mt-1 text-justify text-[7px] leading-[1.25]">
-            usted podra hacer valer sus derechos de accese, rectificación,
-            cancelación u oposición (ARCO) ante la Unidad de Tra ransparencia,
-            ubicada en Calle M. Vila 115. Dodra Primer pleo, Colonia Centro de
-            esta Cudad, con correo electrónico lappaстика дов, ми у поmero
-            telefónico (771) 6.88.11.61
-          </p>
-
-          <p className="mt-1 text-justify text-[7px] leading-[1.25]">
-            Usted podrá consultar el Aviso de Privacidad Integral en is página
-            del municipio www.pachuca.gob.mx, asi como en la Unidad de
-            Transparencia.
-          </p>
-
         </section>
-
       </main>
 
-      {/* =========================
+      {/* ========================================================
           ESTILOS DE IMPRESIÓN
-      ========================== */}
+      ========================================================= */}
       <style>{`
         @media print {
-
           @page {
             size: letter;
             margin: 0.7cm;
@@ -505,6 +639,11 @@ export default async function ImprimirSolicitudPage({
           section,
           div {
             page-break-inside: avoid;
+          }
+
+          img {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
           }
         }
       `}</style>

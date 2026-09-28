@@ -26,19 +26,28 @@ export function ForgotPasswordForm({
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const supabase = createClient();
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/update-password`,
       });
-      if (error) throw error;
+
+      if (error) {
+        throw error;
+      }
+
       setSuccess(true);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al solicitar el cambio de contraseña"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -47,53 +56,94 @@ export function ForgotPasswordForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       {success ? (
-        <Card>
+        <Card className="border border-[#D4C29C] shadow-sm">
           <CardHeader>
-            <CardTitle className="text-2xl">Check Your Email</CardTitle>
-            <CardDescription>Password reset instructions sent</CardDescription>
+            <CardTitle className="text-2xl text-[#621132]">
+              Revisa tu correo electrónico
+            </CardTitle>
+
+            <CardDescription className="text-[#707272]">
+              Se ha enviado la información para restablecer tu contraseña.
+            </CardDescription>
           </CardHeader>
+
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              If you registered using your email and password, you will receive
-              a password reset email.
+            <p className="text-sm leading-6 text-[#707272]">
+              Si el correo electrónico está registrado, recibirás un mensaje
+              con las instrucciones para establecer una nueva contraseña.
             </p>
+
+            <div className="mt-6 text-center">
+              <Link
+                href="/login"
+                className="text-sm font-semibold text-[#9D2449] underline-offset-4 hover:text-[#621132] hover:underline"
+              >
+                Regresar a iniciar sesión
+              </Link>
+            </div>
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="border border-[#D4C29C] shadow-sm">
           <CardHeader>
-            <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-            <CardDescription>
-              Type in your email and we&apos;ll send you a link to reset your
-              password
+            <CardTitle className="text-2xl text-[#621132]">
+              Recuperar contraseña
+            </CardTitle>
+
+            <CardDescription className="text-[#707272]">
+              Ingresa tu correo electrónico para recibir un enlace y
+              restablecer tu contraseña.
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <form onSubmit={handleForgotPassword}>
               <div className="flex flex-col gap-6">
+
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label
+                    htmlFor="email"
+                    className="text-[#621132]"
+                  >
+                    Correo electrónico
+                  </Label>
+
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="correo@ejemplo.com"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="focus:border-[#9D2449] focus:ring-[#D4C29C]"
                   />
                 </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send reset email"}
+
+                {error && (
+                  <p className="text-sm text-red-500">
+                    {error}
+                  </p>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full bg-[#621132] text-white hover:bg-[#9D2449]"
+                  disabled={isLoading}
+                >
+                  {isLoading
+                    ? "Enviando..."
+                    : "Enviar enlace de recuperación"}
                 </Button>
               </div>
-              <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
+
+              <div className="mt-6 text-center text-sm text-[#707272]">
+                ¿Ya tienes una cuenta?{" "}
+
                 <Link
-                  href="/auth/login"
-                  className="underline underline-offset-4"
+                  href="/login"
+                  className="font-semibold text-[#9D2449] underline-offset-4 hover:text-[#621132] hover:underline"
                 >
-                  Login
+                  Iniciar sesión
                 </Link>
               </div>
             </form>

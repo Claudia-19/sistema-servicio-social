@@ -12,12 +12,12 @@ export default function HeaderInstitucional({
   logoutButton,
 }: HeaderInstitucionalProps) {
   return (
-    <header className="border-b border-[#7B1736] bg-[#7B1736]">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        {/* Logo */}
+    <header className="border-b border-[#621132] bg-[#621132]">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+        {/* Logo institucional */}
         <div className="flex items-center">
           <img
-            src="/logo-pachuca.jpg"
+            src="/logo-pachuca.png"
             alt="Pachuca Capital de la Transformación"
             className="h-16 w-auto object-contain"
           />

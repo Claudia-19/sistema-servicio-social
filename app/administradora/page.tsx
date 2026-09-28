@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import LogoutButton from "@/components/LogoutButton";
 import Link from "next/link";
 
+export const instant = false;
+
 export default async function AdministradoraPage() {
   const supabase = await createClient();
 
@@ -31,7 +33,7 @@ export default async function AdministradoraPage() {
     .select("id, nombre, carrera, tipo_proceso, estado")
     .order("fecha_solicitud", { ascending: false });
 
-  // Consultar necesidades
+  // Consultar vacantes
   const { data: necesidades } = await supabase
     .from("necesidades")
     .select(`
@@ -46,28 +48,45 @@ export default async function AdministradoraPage() {
     `)
     .order("created_at", { ascending: false });
 
+  const solicitudesPendientes =
+    solicitudes?.filter(
+      (solicitud) => solicitud.estado === "Pendiente"
+    ).length ?? 0;
+
+  const vacantesDisponibles =
+    necesidades?.filter(
+      (necesidad) =>
+        necesidad.estado === "Disponible" &&
+        necesidad.vacantes_disponibles > 0
+    ).length ?? 0;
+
+  const totalVacantes =
+    necesidades?.reduce(
+      (total, necesidad) =>
+        total + necesidad.vacantes_disponibles,
+      0
+    ) ?? 0;
+
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Encabezado */}
-      <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              Sistema de Control de Servicio Social
-            </h1>
-
-            <p className="text-sm text-gray-500">
-              Panel de Administradora
-            </p>
+      {/* ENCABEZADO */}
+      <header className="border-b border-[#621132] bg-[#621132]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+          <div className="flex items-center">
+            <img
+              src="/logo-pachuca.png"
+              alt="Pachuca Capital de la Transformación"
+              className="h-16 w-auto object-contain"
+            />
           </div>
 
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-white">
                 {usuario.nombre} {usuario.apellido_paterno}
               </p>
 
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-white/80">
                 Administradora
               </p>
             </div>
@@ -77,77 +96,79 @@ export default async function AdministradoraPage() {
         </div>
       </header>
 
-      {/* Contenido */}
+      {/* CONTENIDO */}
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+          <p className="text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
             Administración
           </p>
 
-          <h2 className="mt-2 text-3xl font-bold text-gray-900">
+          <h2 className="mt-2 text-3xl font-bold text-[#621132]">
             Panel general
           </h2>
 
           <p className="mt-2 text-gray-600">
-            Supervisa las solicitudes, necesidades y asignaciones del sistema.
+            Supervisa las solicitudes, vacantes y asignaciones del sistema.
           </p>
         </div>
 
-        {/* Resumen */}
-        <div className="mb-8 grid gap-4 md:grid-cols-4">
+        {/* CONSULTAR */}
+        <div className="mb-5 flex justify-end">
+          <Link
+            href="/administradora/consultas"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#621132] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#9D2449]"
+          >
+            🔎 Consultar
+          </Link>
+        </div>
+
+        {/* RESUMEN */}
+        <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">
               Solicitudes
             </p>
 
-            <p className="mt-2 text-3xl font-bold text-gray-900">
+            <p className="mt-2 text-3xl font-bold text-[#621132]">
               {solicitudes?.length ?? 0}
             </p>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-yellow-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">
-              Pendientes
+              Solicitudes pendientes
             </p>
 
-            <p className="mt-2 text-3xl font-bold text-gray-900">
-              {solicitudes?.filter(
-                (solicitud) => solicitud.estado === "Pendiente"
-              ).length ?? 0}
+            <p className="mt-2 text-3xl font-bold text-yellow-700">
+              {solicitudesPendientes}
             </p>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-500">
-              Necesidades
-            </p>
-
-            <p className="mt-2 text-3xl font-bold text-gray-900">
-              {necesidades?.filter(
-  (necesidad) =>
-    necesidad.estado === "Disponible" &&
-    necesidad.vacantes_disponibles > 0
-).length ?? 0}
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-green-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">
               Vacantes disponibles
             </p>
 
-            <p className="mt-2 text-3xl font-bold text-gray-900">
-              {necesidades?.reduce(
-                (total, necesidad) =>
-                  total + necesidad.vacantes_disponibles,
-                0
-              ) ?? 0}
+            <p className="mt-2 text-3xl font-bold text-green-700">
+              {vacantesDisponibles}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
+            <p className="text-sm text-gray-500">
+              Espacios disponibles
+            </p>
+
+            <p className="mt-2 text-3xl font-bold text-[#621132]">
+              {totalVacantes}
             </p>
           </div>
         </div>
 
-        {/* Acciones principales */}
+        {/* ACCIONES PRINCIPALES */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+          {/* SOLICITUDES */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900">
               Solicitudes
@@ -158,16 +179,17 @@ export default async function AdministradoraPage() {
             </p>
 
             <Link
-  href="/administradora/solicitudes"
-  className="mt-5 inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
->
-  Consultar solicitudes
-</Link>
+              href="/administradora/solicitudes"
+              className="mt-5 inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+            >
+              Consultar solicitudes
+            </Link>
           </div>
 
+          {/* VACANTES */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900">
-              Necesidades de las áreas
+              Vacantes de las áreas
             </h3>
 
             <p className="mt-2 text-sm text-gray-600">
@@ -175,28 +197,30 @@ export default async function AdministradoraPage() {
             </p>
 
             <Link
-  href="/administradora/necesidades"
-  className="mt-5 inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
->
-  Consultar necesidades
-</Link>
+              href="/administradora/necesidades"
+              className="mt-5 inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+            >
+              Consultar vacantes
+            </Link>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          {/* PROPUESTAS */}
+          <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900">
               Propuestas de asignación
             </h3>
 
             <p className="mt-2 text-sm text-gray-600">
-              Revisa y autoriza las propuestas generadas por el sistema.
+              Revisa las propuestas, cambia la vacante si es necesario y
+              autoriza la asignación definitiva.
             </p>
 
             <Link
-  href="/administradora/propuestas"
-  className="mt-5 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
->
-  Revisar propuestas
-</Link>
+              href="/administradora/propuestas"
+              className="mt-5 inline-block rounded-lg bg-[#621132] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#9D2449]"
+            >
+              Revisar propuestas
+            </Link>
           </div>
         </div>
       </section>

@@ -4,6 +4,8 @@ import Link from "next/link";
 import DecisionSolicitud from "@/components/DecisionSolicitud";
 import PosiblesNecesidades from "@/components/PosiblesNecesidades";
 
+export const instant = false;
+
 export default async function RevisarSolicitudPage({
   params,
 }: {
@@ -32,10 +34,12 @@ export default async function RevisarSolicitudPage({
 
   const { id } = await params;
 
+  // Obtener solicitud
   const { data: solicitud, error } = await supabase
     .from("solicitudes")
     .select(`
       id,
+      usuario_id,
       nombre,
       domicilio,
       institucion_educativa,
@@ -48,6 +52,7 @@ export default async function RevisarSolicitudPage({
       fecha_inicio,
       horario_propuesto,
       informacion_adicional,
+      fotografia_url,
       estado,
       fecha_solicitud
     `)
@@ -65,51 +70,181 @@ export default async function RevisarSolicitudPage({
           <p className="mt-2 text-gray-600">
             La solicitud que intentas consultar no existe.
           </p>
+
+          <Link
+            href="/rh"
+            className="mt-5 inline-block rounded-lg bg-[#621132] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#9D2449]"
+          >
+            Regresar a solicitudes
+          </Link>
         </div>
       </main>
     );
   }
-  const { data: necesidades } = await supabase
-  .from("necesidades")
-  .select(`
-    id,
-    area_id,
-    carrera,
-    carrera_otra,
-    nivel_academico,
-    perfil_requerido,
-    horario,
-    vacantes_disponibles,
-    estado,
-    areas (
-      nombre
-    )
-  `)
-  .eq("estado", "Disponible")
-  .gt("vacantes_disponibles", 0)
-  .order("created_at", { ascending: true });
+
+  // ============================================================
+  // OBTENER FOTOGRAFÍA PRIVADA DEL ALUMNO
+  // ============================================================
+
+  let fotoUrl: string | null = null;
+
+  if (solicitud.fotografia_url) {
+    let rutaFotografia = solicitud.fotografia_url;
+
+    /*
+     * Compatibilidad con registros antiguos que guardaron
+     * una URL pública completa.
+     *
+     * Ejemplo:
+     * https://xxxx.supabase.co/storage/v1/object/public/fotos-alumnos/ID/foto.jpg
+     *
+     * La convertimos en:
+     * ID/foto.jpg
+     */
+    if (
+      rutaFotografia.includes(
+        "/storage/v1/object/public/fotos-alumnos/"
+      )
+    ) {
+      rutaFotografia = rutaFotografia.split(
+        "/storage/v1/object/public/fotos-alumnos/"
+      )[1];
+    }
+
+    /*
+     * Si ya es una ruta interna, por ejemplo:
+     *
+     * ID-DEL-USUARIO/foto.jpg
+     *
+     * se utiliza directamente.
+     */
+    if (rutaFotografia) {
+      const { data: signedUrlData, error: signedUrlError } =
+        await supabase.storage
+          .from("fotos-alumnos")
+          .createSignedUrl(rutaFotografia, 60 * 60);
+
+      if (signedUrlError) {
+        console.error(
+          "Error al generar URL firmada de fotografía:",
+          signedUrlError
+        );
+      } else {
+        fotoUrl = signedUrlData?.signedUrl ?? null;
+      }
+    }
+  }
+
+  // ============================================================
+  // OBTENER VACANTES DISPONIBLES
+  // ============================================================
+
+  const { data: necesidades } =
+    solicitud.estado === "Aceptada"
+      ? await supabase
+          .from("necesidades")
+          .select(`
+            id,
+            area_id,
+            carrera,
+            carrera_otra,
+            nivel_academico,
+            perfil_requerido,
+            horario,
+            vacantes_disponibles,
+            estado,
+            areas (
+              nombre
+            )
+          `)
+          .eq("estado", "Disponible")
+          .gt("vacantes_disponibles", 0)
+          .order("created_at", { ascending: true })
+      : { data: [] };
+
+  // ============================================================
+  // OBTENER ASIGNACIÓN DEFINITIVA
+  // ============================================================
+
+  let asignacion: any = null;
+
+  if (solicitud.estado === "Asignada") {
+    const { data } = await supabase
+      .from("asignaciones")
+      .select(`
+        id,
+        estado,
+        fecha_autorizacion,
+        necesidad_id,
+        necesidades (
+          id,
+          carrera,
+          carrera_otra,
+          nivel_academico,
+          perfil_requerido,
+          horario,
+          jefe_inmediato,
+          vacantes_disponibles,
+          estado,
+          areas (
+            nombre
+          )
+        )
+      `)
+      .eq("solicitud_id", solicitud.id)
+      .eq("estado", "Autorizada")
+      .order("fecha_autorizacion", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    asignacion = data;
+  }
+
+  const necesidadAsignada = asignacion?.necesidades
+    ? Array.isArray(asignacion.necesidades)
+      ? asignacion.necesidades[0]
+      : asignacion.necesidades
+    : null;
+
+  const areaAsignada = necesidadAsignada?.areas
+    ? Array.isArray(necesidadAsignada.areas)
+      ? necesidadAsignada.areas[0]
+      : necesidadAsignada.areas
+    : null;
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-5xl px-6 py-5">
-          <h1 className="text-xl font-bold text-gray-900">
-            Sistema de Control de Servicio Social
-          </h1>
+      {/* ENCABEZADO */}
+      <header className="border-b border-[#621132] bg-[#621132]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+          <div className="flex items-center">
+            <img
+              src="/logo-pachuca.png"
+              alt="Pachuca Capital de la Transformación"
+              className="h-16 w-auto object-contain"
+            />
+          </div>
 
-          <p className="text-sm text-gray-500">
-            Revisión de solicitud
-          </p>
+          <div className="text-right">
+            <p className="text-sm font-medium text-white">
+              Recursos Humanos
+            </p>
+
+            <p className="text-xs text-white/80">
+              Revisión de solicitud
+            </p>
+          </div>
         </div>
       </header>
 
+      {/* CONTENIDO */}
       <section className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+          <p className="text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
             Recursos Humanos
           </p>
 
-          <h2 className="mt-2 text-3xl font-bold text-gray-900">
+          <h2 className="mt-2 text-3xl font-bold text-[#621132]">
             Revisar solicitud
           </h2>
 
@@ -119,7 +254,150 @@ export default async function RevisarSolicitudPage({
         </div>
 
         <div className="space-y-6">
-          {/* Datos personales */}
+          {/* ASIGNACIÓN DEFINITIVA */}
+          {solicitud.estado === "Asignada" && (
+            <div className="rounded-xl border border-green-200 bg-green-50 p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100">
+                  <span className="text-xl text-green-700">✓</span>
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-green-900">
+                    Asignación autorizada
+                  </h3>
+
+                  <p className="mt-1 text-sm text-green-800">
+                    La Administradora autorizó la asignación de este alumno.
+                    Esta es la asignación definitiva.
+                  </p>
+
+                  {necesidadAsignada ? (
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+                      <div className="rounded-lg bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Área asignada
+                        </p>
+
+                        <p className="mt-1 font-semibold text-[#621132]">
+                          {areaAsignada?.nombre ?? "Sin área"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Estado de asignación
+                        </p>
+
+                        <p className="mt-1 font-semibold text-green-700">
+                          {asignacion?.estado ?? "Autorizada"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Carrera requerida
+                        </p>
+
+                        <p className="mt-1 font-medium text-gray-900">
+                          {necesidadAsignada.carrera_otra ||
+                            necesidadAsignada.carrera ||
+                            "Sin especificar"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Nivel académico
+                        </p>
+
+                        <p className="mt-1 font-medium text-gray-900">
+                          {necesidadAsignada.nivel_academico ||
+                            "Sin especificar"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Horario
+                        </p>
+
+                        <p className="mt-1 font-medium text-gray-900">
+                          {necesidadAsignada.horario || "Sin especificar"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Jefe inmediato
+                        </p>
+
+                        <p className="mt-1 font-medium text-gray-900">
+                          {necesidadAsignada.jefe_inmediato ||
+                            "Sin especificar"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-4 md:col-span-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Fecha de autorización
+                        </p>
+
+                        <p className="mt-1 font-medium text-gray-900">
+                          {asignacion?.fecha_autorizacion
+                            ? new Date(
+                                asignacion.fecha_autorizacion
+                              ).toLocaleString("es-MX")
+                            : "Sin fecha registrada"}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                      La solicitud aparece como asignada, pero no fue posible
+                      consultar los datos de la asignación.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* FOTOGRAFÍA DEL ALUMNO */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Fotografía del alumno
+            </h3>
+
+            <div className="mt-5 flex flex-col items-center sm:flex-row sm:items-start sm:gap-6">
+              <div className="flex h-48 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-[#B38E5D] bg-gray-50">
+                {fotoUrl ? (
+                  <img
+                    src={fotoUrl}
+                    alt={`Fotografía de ${solicitud.nombre}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="px-4 text-center">
+                    <div className="mb-2 text-4xl">📷</div>
+
+                    <p className="text-sm text-gray-500">
+                      Sin fotografía
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 sm:mt-0">
+                <p className="text-sm text-gray-600">
+                  Fotografía proporcionada por el alumno para su expediente
+                  y credencial.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* DATOS PERSONALES */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900">
               Datos personales
@@ -130,6 +408,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Nombre completo
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.nombre}
                 </p>
@@ -139,6 +418,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Domicilio
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.domicilio}
                 </p>
@@ -148,6 +428,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Teléfono celular
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.telefono}
                 </p>
@@ -157,6 +438,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Correo electrónico
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.correo}
                 </p>
@@ -164,7 +446,7 @@ export default async function RevisarSolicitudPage({
             </div>
           </div>
 
-          {/* Datos académicos */}
+          {/* DATOS ACADÉMICOS */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900">
               Datos académicos
@@ -175,6 +457,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Institución educativa
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.institucion_educativa}
                 </p>
@@ -184,6 +467,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Carrera
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.carrera}
                 </p>
@@ -193,6 +477,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Semestre / Cuatrimestre
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.semestre_cuatrimestre}
                 </p>
@@ -202,6 +487,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Matrícula / Número de control
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.matricula}
                 </p>
@@ -209,7 +495,7 @@ export default async function RevisarSolicitudPage({
             </div>
           </div>
 
-          {/* Datos de la solicitud */}
+          {/* DATOS DE LA SOLICITUD */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900">
               Datos de la solicitud
@@ -220,6 +506,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Tipo de proceso
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.tipo_proceso}
                 </p>
@@ -229,6 +516,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Estado
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.estado}
                 </p>
@@ -238,6 +526,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Fecha de inicio
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.fecha_inicio}
                 </p>
@@ -247,6 +536,7 @@ export default async function RevisarSolicitudPage({
                 <p className="text-sm text-gray-500">
                   Horario propuesto
                 </p>
+
                 <p className="mt-1 font-medium text-gray-900">
                   {solicitud.horario_propuesto}
                 </p>
@@ -259,45 +549,46 @@ export default async function RevisarSolicitudPage({
               </p>
 
               <p className="mt-1 font-medium text-gray-900">
-                {solicitud.informacion_adicional || "Sin información adicional."}
+                {solicitud.informacion_adicional ||
+                  "Sin información adicional."}
               </p>
             </div>
           </div>
 
-          {/* Acciones */}
-<div className="flex items-center justify-between">
-  <a
-    href="/rh"
-    className="text-sm text-gray-500 hover:text-gray-900"
-  >
-    ← Regresar a solicitudes
-  </a>
+          {/* ACCIONES */}
+          <div className="flex flex-col gap-4 border-t border-gray-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <Link
+              href="/rh"
+              className="text-sm text-gray-500 transition hover:text-[#621132]"
+            >
+              ← Regresar a solicitudes
+            </Link>
 
-  <div className="flex items-center gap-3">
-    {solicitud.estado === "Asignada" && (
-      <Link
-        href={`/rh/solicitud/${solicitud.id}/imprimir`}
-        className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100"
-      >
-        🖨️ Imprimir formato
-      </Link>
-    )}
+            <div className="flex flex-wrap items-center gap-3">
+              {solicitud.estado === "Asignada" && (
+                <Link
+                  href={`/rh/solicitud/${solicitud.id}/imprimir`}
+                  className="rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                >
+                  🖨️ Imprimir formato
+                </Link>
+              )}
 
-    <DecisionSolicitud
-      solicitudId={solicitud.id}
-      estado={solicitud.estado}
-    />
-  </div>
-</div>
+              <DecisionSolicitud
+                solicitudId={solicitud.id}
+                estado={solicitud.estado}
+              />
+            </div>
+          </div>
 
-{/* Posibles necesidades */}
-{solicitud.estado === "Aceptada" && (
-  <PosiblesNecesidades
-    solicitudId={solicitud.id}
-    carreraAlumno={solicitud.carrera}
-    necesidades={necesidades ?? []}
-  />
-)}
+          {/* POSIBLES VACANTES */}
+          {solicitud.estado === "Aceptada" && (
+            <PosiblesNecesidades
+              solicitudId={solicitud.id}
+              carreraAlumno={solicitud.carrera}
+              necesidades={necesidades ?? []}
+            />
+          )}
         </div>
       </section>
     </main>

@@ -11,6 +11,17 @@ export default {
   theme: {
     extend: {
       colors: {
+                vino: {
+          oscuro: "#621132",
+          claro: "#9D2449",
+        },
+        dorado: {
+          oscuro: "#B38E5D",
+          claro: "#D4C29C",
+        },
+        gris: {
+          oscuro: "#707272",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

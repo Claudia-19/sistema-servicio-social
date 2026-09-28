@@ -1,31 +1,32 @@
-"use client";
+﻿"use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    setError("");
     setLoading(true);
+    setError("");
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: correo,
+      password: contrasena,
     });
 
     if (error) {
-      setError("Correo electrónico o contraseña incorrectos.");
+      setError("Correo electrÃ³nico o contraseÃ±a incorrectos.");
       setLoading(false);
       return;
     }
@@ -35,98 +36,137 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-            Presidencia Municipal
-          </p>
-
-          <h1 className="mt-3 text-3xl font-bold text-gray-900">
-            Sistema de Control de Servicio Social
-          </h1>
-
-          <p className="mt-3 text-gray-600">
-            Inicia sesión para continuar
-          </p>
+    <main className="min-h-screen bg-gray-50">
+      {/* Encabezado institucional */}
+      <header className="border-b border-[#621132] bg-[#621132]">
+        <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-5">
+          <img
+            src="/logo-pachuca.png"
+            alt="Pachuca Capital de la TransformaciÃ³n"
+            className="h-24 w-auto object-contain"
+          />
         </div>
+      </header>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Correo electrónico
-              </label>
+      {/* Contenido */}
+      <section className="flex min-h-[calc(100vh-130px)] items-center justify-center px-6 py-14">
+        <div className="w-full max-w-xl">
 
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="correo@ejemplo.com"
-                required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-500"
-              />
-            </div>
+          {/* TÃ­tulo */}
+          <div className="mb-8 text-center">
+            <p className="mb-3 text-base font-semibold uppercase tracking-wider text-[#9D2449]">
+              Presidencia Municipal
+            </p>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Contraseña
-              </label>
+            <h1 className="text-4xl font-bold leading-tight text-[#621132] sm:text-5xl">
+              Sistema de Control de
+              <br />
+              Prestadores
+            </h1>
 
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-500"
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-gray-900 px-5 py-3 font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center text-sm text-gray-500">
-            ¿Eres alumno y aún no tienes una cuenta?
+            <p className="mt-4 text-base text-[#707272]">
+              Inicia sesiÃ³n para continuar
+            </p>
           </div>
 
-          <a
-            href="/registro"
-            className="mt-3 block text-center text-sm font-medium text-gray-900 hover:underline"
-          >
-            Crear cuenta
-          </a>
-        </div>
+          {/* Formulario */}
+          <div className="rounded-xl border border-[#D4C29C] bg-white p-8 shadow-sm sm:p-10">
+            <form onSubmit={handleLogin} className="space-y-6">
 
-        <div className="mt-6 text-center">
-          <a
-            href="/"
-            className="text-sm text-gray-500 hover:text-gray-900"
-          >
-            ← Regresar al inicio
-          </a>
+              {/* Correo */}
+              <div>
+                <label
+                  htmlFor="correo"
+                  className="mb-2 block text-sm font-semibold text-[#621132]"
+                >
+                  Correo electrÃ³nico
+                </label>
+
+                <input
+                  id="correo"
+                  type="email"
+                  value={correo}
+                  onChange={(e) => setCorreo(e.target.value)}
+                  placeholder="correo@ejemplo.com"
+                  required
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3.5 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
+                />
+              </div>
+
+              {/* ContraseÃ±a */}
+              <div>
+                <label
+                  htmlFor="contrasena"
+                  className="mb-2 block text-sm font-semibold text-[#621132]"
+                >
+                  ContraseÃ±a
+                </label>
+
+                <input
+                  id="contrasena"
+                  type="password"
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  required
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3.5 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
+                />
+
+                {/* RecuperaciÃ³n de contraseÃ±a */}
+                <div className="mt-2 text-right">
+                  <Link
+                    href="/auth/forgot-password"
+                    className="text-sm font-medium text-[#9D2449] underline-offset-4 hover:text-[#621132] hover:underline"
+                  >
+                    Â¿Olvidaste tu contraseÃ±a?
+                  </Link>
+                </div>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
+              {/* BotÃ³n */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-lg bg-[#621132] px-5 py-3.5 text-base font-semibold text-white transition hover:bg-[#9D2449] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Iniciando sesiÃ³n..." : "Iniciar sesiÃ³n"}
+              </button>
+            </form>
+
+            {/* Registro */}
+            <div className="mt-7 text-center">
+              <p className="text-sm text-[#707272]">
+                Â¿AÃºn no tienes una cuenta?
+              </p>
+
+              <Link
+                href="/auth/sign-up"
+                className="mt-2 inline-block text-sm font-semibold text-[#9D2449] underline-offset-4 hover:text-[#621132] hover:underline"
+              >
+                Crear cuenta
+              </Link>
+            </div>
+          </div>
+
+          {/* Regresar */}
+          <div className="mt-7 text-center">
+            <Link
+              href="/"
+              className="text-sm text-[#707272] transition hover:text-[#621132]"
+            >
+              â† Regresar al inicio
+            </Link>
+          </div>
+
         </div>
-      </div>
+      </section>
     </main>
   );
 }
