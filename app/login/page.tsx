@@ -59,9 +59,9 @@ export default function LoginPage() {
             </p>
 
             <h1 className="text-4xl font-bold leading-tight text-[#621132] sm:text-5xl">
-              Sistema de Control de
+              Sistema Integral de Seguimiento de
               <br />
-              Estudiantes
+              Formación Profesional
             </h1>
 
             <p className="mt-4 text-base text-[#707272]">
