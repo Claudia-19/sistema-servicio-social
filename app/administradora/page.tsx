@@ -69,9 +69,11 @@ export default async function AdministradoraPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+
       {/* ENCABEZADO */}
       <header className="border-b border-[#621132] bg-[#621132]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+
           <div className="flex items-center">
             <img
               src="/logo-pachuca.png"
@@ -81,24 +83,25 @@ export default async function AdministradoraPage() {
           </div>
 
           <div className="flex items-center gap-4">
+
             <div className="text-right">
               <p className="text-sm font-medium text-white">
-                {usuario.nombre} {usuario.apellido_paterno}
-              </p>
-
-              <p className="text-xs text-white/80">
-                Administradora
+                Administrador/a
               </p>
             </div>
 
             <LogoutButton />
+
           </div>
+
         </div>
       </header>
 
       {/* CONTENIDO */}
       <section className="mx-auto max-w-7xl px-6 py-10">
+
         <div className="mb-8">
+
           <p className="text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
             Administración
           </p>
@@ -110,21 +113,25 @@ export default async function AdministradoraPage() {
           <p className="mt-2 text-gray-600">
             Supervisa las solicitudes, vacantes y asignaciones del sistema.
           </p>
+
         </div>
 
         {/* CONSULTAR */}
         <div className="mb-5 flex justify-end">
+
           <Link
             href="/administradora/consultas"
             className="inline-flex items-center gap-2 rounded-lg bg-[#621132] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#9D2449]"
           >
             🔎 Consultar
           </Link>
+
         </div>
 
         {/* RESUMEN */}
         <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+
+          <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">
               Solicitudes
             </p>
@@ -163,13 +170,15 @@ export default async function AdministradoraPage() {
               {totalVacantes}
             </p>
           </div>
+
         </div>
 
         {/* ACCIONES PRINCIPALES */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
           {/* SOLICITUDES */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
+
             <h3 className="text-lg font-semibold text-gray-900">
               Solicitudes
             </h3>
@@ -180,14 +189,16 @@ export default async function AdministradoraPage() {
 
             <Link
               href="/administradora/solicitudes"
-              className="mt-5 inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+              className="mt-5 inline-block rounded-lg bg-[#621132] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#9D2449]"
             >
               Consultar solicitudes
             </Link>
+
           </div>
 
           {/* VACANTES */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
+
             <h3 className="text-lg font-semibold text-gray-900">
               Vacantes de las áreas
             </h3>
@@ -198,14 +209,16 @@ export default async function AdministradoraPage() {
 
             <Link
               href="/administradora/necesidades"
-              className="mt-5 inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+              className="mt-5 inline-block rounded-lg bg-[#621132] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#9D2449]"
             >
               Consultar vacantes
             </Link>
+
           </div>
 
           {/* PROPUESTAS */}
           <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
+
             <h3 className="text-lg font-semibold text-gray-900">
               Propuestas de asignación
             </h3>
@@ -221,8 +234,11 @@ export default async function AdministradoraPage() {
             >
               Revisar propuestas
             </Link>
+
           </div>
+
         </div>
+
       </section>
     </main>
   );

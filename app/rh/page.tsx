@@ -279,6 +279,13 @@ export default async function RHPage() {
                 🔎 Consultar
               </Link>
 
+              <Link
+  href="/rh/necesidades"
+  className="inline-flex items-center gap-2 rounded-lg border border-[#621132] bg-white px-5 py-2.5 text-sm font-medium text-[#621132] transition hover:bg-[#D4C29C]/20"
+>
+  🏢 Vacantes
+</Link>
+
             </div>
 
             {/* =================================================
