@@ -371,11 +371,11 @@ export default async function ConsultasAdministradoraPage() {
           </p>
 
           <h2 className="mt-2 text-3xl font-bold text-[#621132]">
-            Consultar prestadores
+            Consultar estudiantes
           </h2>
 
           <p className="mt-2 text-gray-600">
-            Consulta información de prestadores
+            Consulta información de estudiantes
             actuales e históricos.
           </p>
         </div>

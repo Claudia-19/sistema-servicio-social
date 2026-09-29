@@ -90,7 +90,7 @@ export default async function SeguimientoAlumnoPage({
                 </p>
 
                 <p className="text-xs text-white/80">
-                  Recursos Humanos
+                  DIRECCIÓN GENERAL DE RECURSOS HUMANOS
                 </p>
               </div>
 
@@ -104,7 +104,7 @@ export default async function SeguimientoAlumnoPage({
             href="/rh/alumnos-activos"
             className="text-sm font-medium text-[#9D2449] hover:text-[#621132]"
           >
-            ← Regresar a alumnos activos
+            ← Regresar a estudiantes activos
           </Link>
 
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-6 text-red-700">
@@ -136,8 +136,6 @@ export default async function SeguimientoAlumnoPage({
     .select(`
       id,
       nombre,
-      apellido_paterno,
-      apellido_materno,
       matricula,
       domicilio,
       institucion_educativa,
@@ -190,16 +188,11 @@ export default async function SeguimientoAlumnoPage({
   }
 
   // =========================================================
-  // 5. NOMBRE COMPLETO
+  // 5. NOMBRE DEL ESTUDIANTE
   // =========================================================
 
-  const nombreCompleto = [
-    solicitud?.nombre,
-    solicitud?.apellido_paterno,
-    solicitud?.apellido_materno,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const nombreCompleto =
+    solicitud?.nombre || "No registrado";
 
   // =========================================================
   // 6. HORAS
@@ -311,13 +304,12 @@ export default async function SeguimientoAlumnoPage({
               </p>
 
               <p className="text-xs text-white/80">
-                Recursos Humanos
+                DIRECCIÓN GENERAL DE RECURSOS HUMANOS
               </p>
             </div>
 
             <LogoutButton />
           </div>
-
         </div>
       </header>
 
@@ -328,7 +320,7 @@ export default async function SeguimientoAlumnoPage({
           href="/rh/alumnos-activos"
           className="text-sm font-medium text-[#9D2449] hover:text-[#621132]"
         >
-          ← Regresar a alumnos activos
+          ← Regresar a estudiantes activos
         </Link>
 
         {/* TÍTULO */}
@@ -352,11 +344,11 @@ export default async function SeguimientoAlumnoPage({
         {/* INFORMACIÓN PRINCIPAL */}
         <div className="grid gap-6 lg:grid-cols-3">
 
-          {/* ALUMNO */}
+          {/* ESTUDIANTE */}
           <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm lg:col-span-2">
 
             <h2 className="border-b border-gray-100 pb-4 text-lg font-semibold text-[#621132]">
-              Información del alumno
+              Información del estudiante
             </h2>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -367,7 +359,7 @@ export default async function SeguimientoAlumnoPage({
                 </p>
 
                 <p className="mt-1 font-medium text-gray-800">
-                  {nombreCompleto || "No registrado"}
+                  {nombreCompleto}
                 </p>
               </div>
 
@@ -525,7 +517,7 @@ export default async function SeguimientoAlumnoPage({
 
                     <div>
                       <p className="text-xs font-medium uppercase text-gray-400">
-                        Folio del acta
+                        Número de oficio de baja de la dependencia
                       </p>
 
                       <p className="mt-1 font-medium text-[#621132]">
@@ -549,6 +541,7 @@ export default async function SeguimientoAlumnoPage({
               {/* DAR DE BAJA */}
               {asignacion.estado_prestacion === "Activa" && (
                 <div className="mt-5 border-t border-gray-100 pt-5">
+
                   <p className="mb-3 text-xs font-medium uppercase text-gray-400">
                     Acciones del estado
                   </p>
@@ -557,6 +550,7 @@ export default async function SeguimientoAlumnoPage({
                     asignacionId={asignacion.id}
                     nombreAlumno={nombreCompleto}
                   />
+
                 </div>
               )}
 
@@ -739,6 +733,7 @@ export default async function SeguimientoAlumnoPage({
 
                   {horasCompletadas && (
                     <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
+
                       <p className="text-sm font-semibold text-green-700">
                         🟢 El alumno ya completó las horas requeridas.
                       </p>
@@ -751,6 +746,7 @@ export default async function SeguimientoAlumnoPage({
                           />
                         </div>
                       )}
+
                     </div>
                   )}
 

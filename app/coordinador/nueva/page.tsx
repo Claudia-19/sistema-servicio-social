@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -77,8 +77,10 @@ export default function NuevaNecesidadPage() {
           if (nombreB === "asamblea") return 1;
 
           // Después van las Secretarías
-          const esSecretariaA = nombreA.startsWith("secretaría");
-          const esSecretariaB = nombreB.startsWith("secretaría");
+          const esSecretariaA =
+            nombreA.startsWith("secretaría");
+          const esSecretariaB =
+            nombreB.startsWith("secretaría");
 
           if (esSecretariaA && !esSecretariaB) return -1;
           if (!esSecretariaA && esSecretariaB) return 1;
@@ -140,56 +142,75 @@ export default function NuevaNecesidadPage() {
       .single();
 
     if (!usuario || usuario.rol_id !== 3) {
-      setError("No tienes permisos para registrar vacantes.");
+      setError(
+        "No tienes permisos para registrar vacantes."
+      );
       setGuardando(false);
       return;
     }
 
-    const { error } = await supabase.from("necesidades").insert({
-      coordinador_id: user.id,
-      area_id: Number(formulario.area_id),
+    const { error } = await supabase
+      .from("necesidades")
+      .insert({
+        coordinador_id: user.id,
+        area_id: Number(formulario.area_id),
 
-      perfil_requerido: formulario.perfil_requerido.trim(),
+        perfil_requerido:
+          formulario.perfil_requerido.trim(),
 
-      carrera:
-        formulario.carrera === "Otra"
-          ? formulario.carrera_otra.trim()
-          : formulario.carrera.trim(),
+        carrera:
+          formulario.carrera === "Otra"
+            ? formulario.carrera_otra.trim()
+            : formulario.carrera.trim(),
 
-      carrera_otra:
-        formulario.carrera === "Otra"
-          ? formulario.carrera_otra.trim()
-          : null,
+        carrera_otra:
+          formulario.carrera === "Otra"
+            ? formulario.carrera_otra.trim()
+            : null,
 
-      nivel_academico: formulario.nivel_academico.trim(),
+        nivel_academico:
+          formulario.nivel_academico.trim(),
 
-      actividad_1: formulario.actividad_1.trim(),
-      actividad_2: formulario.actividad_2.trim(),
-      actividad_3: formulario.actividad_3.trim(),
+        actividad_1:
+          formulario.actividad_1.trim(),
 
-      // Se conserva temporalmente para compatibilidad
-      // con las partes antiguas del sistema.
-      actividades_a_realizar: [
-        formulario.actividad_1.trim(),
-        formulario.actividad_2.trim(),
-        formulario.actividad_3.trim(),
-      ].join(" | "),
+        actividad_2:
+          formulario.actividad_2.trim(),
 
-      // Área o departamento específico dentro del área de adscripción.
-      area_asignada: formulario.area_asignada.trim(),
+        actividad_3:
+          formulario.actividad_3.trim(),
 
-      horario: formulario.horario.trim(),
-      jefe_inmediato: formulario.jefe_inmediato.trim(),
+        // Se conserva temporalmente para compatibilidad
+        // con las partes antiguas del sistema.
+        actividades_a_realizar: [
+          formulario.actividad_1.trim(),
+          formulario.actividad_2.trim(),
+          formulario.actividad_3.trim(),
+        ].join(" | "),
 
-      vacantes_disponibles: Number(
-        formulario.vacantes_disponibles
-      ),
+        // Área o departamento específico dentro del área de adscripción.
+        area_asignada:
+          formulario.area_asignada.trim(),
 
-      estado: "Disponible",
-    });
+        horario:
+          formulario.horario.trim(),
+
+        jefe_inmediato:
+          formulario.jefe_inmediato.trim(),
+
+        vacantes_disponibles: Number(
+          formulario.vacantes_disponibles
+        ),
+
+        estado: "Disponible",
+      });
 
     if (error) {
-      console.error("ERROR AL GUARDAR VACANTE:", error);
+      console.error(
+        "ERROR AL GUARDAR VACANTE:",
+        error
+      );
+
       setError(`Error: ${error.message}`);
       setGuardando(false);
       return;
@@ -284,20 +305,21 @@ export default function NuevaNecesidadPage() {
                 ))}
               </select>
 
-              {!loadingAreas && areas.length === 0 && (
-                <p className="mt-2 text-sm text-amber-700">
-                  Todavía no hay áreas registradas en el catálogo.
-                </p>
-              )}
+              {!loadingAreas &&
+                areas.length === 0 && (
+                  <p className="mt-2 text-sm text-amber-700">
+                    Todavía no hay áreas registradas en el catálogo.
+                  </p>
+                )}
             </div>
           </div>
 
-          {/* PERFIL */}
+          {/* CONOCIMIENTOS REQUERIDOS */}
           <div className="rounded-xl border border-dorado-claro bg-white p-6 shadow-sm">
             <div className="mb-4 h-1 w-12 rounded-full bg-dorado-oscuro" />
 
             <h3 className="text-lg font-semibold text-vino-oscuro">
-              Perfil requerido
+              Conocimientos requeridos
             </h3>
 
             <p className="mt-1 text-sm text-gris-oscuro">
@@ -309,7 +331,7 @@ export default function NuevaNecesidadPage() {
                 htmlFor="perfil_requerido"
                 className="mb-2 block text-sm font-medium text-vino-oscuro"
               >
-                Perfil requerido *
+                Conocimientos requeridos *
               </label>
 
               <textarea
@@ -319,7 +341,7 @@ export default function NuevaNecesidadPage() {
                 onChange={handleChange}
                 required
                 rows={3}
-                placeholder="Describe el perfil que requiere el área..."
+                placeholder="Describe los conocimientos que requiere el área..."
                 className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C]"
               />
             </div>
@@ -371,12 +393,12 @@ export default function NuevaNecesidadPage() {
                       value={carrera.nombre}
                     />
                   ))}
+
                   <option value="Otra" />
                 </datalist>
 
                 <p className="mt-2 text-xs text-gris-oscuro">
-                  Puedes escribir parte del nombre para encontrar una carrera
-                  del catálogo.
+                  Puedes escribir parte del nombre para encontrar una carrera del catálogo.
                 </p>
               </div>
 
@@ -401,8 +423,8 @@ export default function NuevaNecesidadPage() {
                     Selecciona un nivel académico
                   </option>
 
-                  <option value="Bachillerato">
-                    Bachillerato
+                  <option value="Bachillerato/Técnico(a)">
+                    Bachillerato/Técnico(a)
                   </option>
 
                   <option value="Licenciatura">
@@ -544,7 +566,7 @@ export default function NuevaNecesidadPage() {
                   value={formulario.area_asignada}
                   onChange={handleChange}
                   required
-                  placeholder="Ej. Departamento de Profesionalización"
+                  placeholder="Ej. Dirección, Departamento de..."
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C]"
                 />
 
@@ -574,12 +596,12 @@ export default function NuevaNecesidadPage() {
                     Selecciona un horario
                   </option>
 
-                  <option value="Matutino">
-                    Matutino
+                  <option value="Matutino (8:30-12:30)">
+                    Matutino (8:30-12:30)
                   </option>
 
-                  <option value="Vespertino">
-                    Vespertino
+                  <option value="Vespertino (12:30-16:30)">
+                    Vespertino (12:30-16:30)
                   </option>
                 </select>
               </div>
@@ -590,7 +612,7 @@ export default function NuevaNecesidadPage() {
                   htmlFor="jefe_inmediato"
                   className="mb-2 block text-sm font-medium text-vino-oscuro"
                 >
-                  Jefe inmediato *
+                  Jefe(a) inmediato(a) *
                 </label>
 
                 <input
@@ -600,7 +622,7 @@ export default function NuevaNecesidadPage() {
                   value={formulario.jefe_inmediato}
                   onChange={handleChange}
                   required
-                  placeholder="Nombre del jefe inmediato"
+                  placeholder="Nombre del jefe(a) inmediato(a)"
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C]"
                 />
               </div>

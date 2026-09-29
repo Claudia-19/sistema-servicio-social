@@ -240,127 +240,127 @@ export default async function ConsultasRHPage() {
   // =========================================================
 
   const registrosActuales: RegistroConsulta[] =
-  (asignaciones ?? [])
-    .map((asignacion) => {
-      const solicitud =
-        (solicitudes ?? []).find(
-          (item) =>
-            item.id === asignacion.solicitud_id
-        );
+    (asignaciones ?? [])
+      .map((asignacion) => {
+        const solicitud =
+          (solicitudes ?? []).find(
+            (item) =>
+              item.id === asignacion.solicitud_id
+          );
 
-      const necesidad =
-        (necesidades ?? []).find(
-          (item) =>
-            item.id === asignacion.necesidad_id
-        );
+        const necesidad =
+          (necesidades ?? []).find(
+            (item) =>
+              item.id === asignacion.necesidad_id
+          );
 
-      const area =
-        (areas ?? []).find(
-          (item) =>
-            item.id === necesidad?.area_id
-        );
+        const area =
+          (areas ?? []).find(
+            (item) =>
+              item.id === necesidad?.area_id
+          );
 
-      if (!solicitud) {
-        return null;
-      }
-
-      const registrosAlumno =
-        (registrosHoras ?? []).filter(
-          (registro) =>
-            registro.asignacion_id ===
-            asignacion.id
-        );
-
-      const horasAcumuladas =
-        registrosAlumno.reduce(
-          (total, registro) =>
-            total +
-            Number(registro.horas ?? 0),
-          0
-        );
-
-      const fechaReferencia =
-        asignacion.fecha_activacion ??
-        solicitud.fecha_inicio;
-
-      let anio = new Date().getFullYear();
-      let mes: number | null = null;
-
-      if (fechaReferencia) {
-        const fecha = new Date(
-          fechaReferencia
-        );
-
-        if (!isNaN(fecha.getTime())) {
-          anio = fecha.getFullYear();
-          mes = fecha.getMonth() + 1;
+        if (!solicitud) {
+          return null;
         }
-      }
 
-      const registro: RegistroConsulta = {
-        id: 1000000 + asignacion.id,
+        const registrosAlumno =
+          (registrosHoras ?? []).filter(
+            (registro) =>
+              registro.asignacion_id ===
+              asignacion.id
+          );
 
-        anio,
-        mes,
+        const horasAcumuladas =
+          registrosAlumno.reduce(
+            (total, registro) =>
+              total +
+              Number(registro.horas ?? 0),
+            0
+          );
 
-        institucion_educativa:
-          solicitud.institucion_educativa,
+        const fechaReferencia =
+          asignacion.fecha_activacion ??
+          solicitud.fecha_inicio;
 
-        nombre_estudiante:
-          solicitud.nombre,
+        let anio = new Date().getFullYear();
+        let mes: number | null = null;
 
-        carrera:
-          solicitud.carrera,
+        if (fechaReferencia) {
+          const fecha = new Date(
+            fechaReferencia
+          );
 
-        secretaria:
-          area?.nombre ?? null,
+          if (!isNaN(fecha.getTime())) {
+            anio = fecha.getFullYear();
+            mes = fecha.getMonth() + 1;
+          }
+        }
 
-        area_asignada:
-          necesidad?.area_asignada ?? null,
+        const registro: RegistroConsulta = {
+          id: 1000000 + asignacion.id,
 
-        jefe_inmediato:
-          necesidad?.jefe_inmediato ?? null,
+          anio,
+          mes,
 
-        fecha_inicio:
-          solicitud.fecha_inicio,
+          institucion_educativa:
+            solicitud.institucion_educativa,
 
-        fecha_fin:
-          asignacion.fecha_termino,
+          nombre_estudiante:
+            solicitud.nombre,
 
-        total_horas:
-          horasAcumuladas,
+          carrera:
+            solicitud.carrera,
 
-        tipo_proceso:
-          solicitud.tipo_proceso,
+          secretaria:
+            area?.nombre ?? null,
 
-        estado_prestacion:
-          asignacion.estado_prestacion,
+          area_asignada:
+            necesidad?.area_asignada ?? null,
 
-        fecha_activacion:
-          asignacion.fecha_activacion,
+          jefe_inmediato:
+            necesidad?.jefe_inmediato ?? null,
 
-        fecha_baja:
-          asignacion.fecha_baja,
+          fecha_inicio:
+            solicitud.fecha_inicio,
 
-        motivo_baja:
-          asignacion.motivo_baja,
+          fecha_fin:
+            asignacion.fecha_termino,
 
-        folio_acta_baja:
-          asignacion.folio_acta_baja,
+          total_horas:
+            horasAcumuladas,
 
-        horas_requeridas:
-          asignacion.horas_requeridas,
+          tipo_proceso:
+            solicitud.tipo_proceso,
 
-        horas_acumuladas:
-          horasAcumuladas,
-      };
+          estado_prestacion:
+            asignacion.estado_prestacion,
 
-      return registro;
-    })
-    .filter(
-      (registro): registro is RegistroConsulta =>
-        registro !== null
-    );
+          fecha_activacion:
+            asignacion.fecha_activacion,
+
+          fecha_baja:
+            asignacion.fecha_baja,
+
+          motivo_baja:
+            asignacion.motivo_baja,
+
+          folio_acta_baja:
+            asignacion.folio_acta_baja,
+
+          horas_requeridas:
+            asignacion.horas_requeridas,
+
+          horas_acumuladas:
+            horasAcumuladas,
+        };
+
+        return registro;
+      })
+      .filter(
+        (registro): registro is RegistroConsulta =>
+          registro !== null
+      );
 
   // =========================================================
   // CONVERTIR HISTÓRICO
@@ -439,7 +439,7 @@ export default async function ConsultasRHPage() {
               </p>
 
               <p className="text-xs text-white/80">
-                Recursos Humanos
+                DIRECCIÓN GENERAL DE RECURSOS HUMANOS
               </p>
             </div>
 
@@ -462,15 +462,15 @@ export default async function ConsultasRHPage() {
           </Link>
 
           <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
-            Recursos Humanos
+            DIRECCIÓN GENERAL DE RECURSOS HUMANOS
           </p>
 
           <h2 className="mt-2 text-3xl font-bold text-[#621132]">
-            Consultar prestadores
+            Consultar alumnos
           </h2>
 
           <p className="mt-2 text-gray-600">
-            Consulta la información de prestadores
+            Consulta la información de alumnos
             históricos y actuales del sistema.
           </p>
         </div>

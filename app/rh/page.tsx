@@ -152,7 +152,7 @@ export default async function RHPage() {
     ).length;
 
   // =========================================================
-  // ALUMNOS ACTIVOS
+  // ESTUDIANTES ACTIVOS
   // =========================================================
 
   const { count: alumnosActivos } =
@@ -199,7 +199,7 @@ export default async function RHPage() {
               </p>
 
               <p className="text-xs text-white/80">
-                Recursos Humanos
+                DIRECCIÓN GENERAL DE RECURSOS HUMANOS
               </p>
             </div>
 
@@ -218,7 +218,7 @@ export default async function RHPage() {
         <div className="mb-8">
 
           <p className="text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
-            Recursos Humanos
+            DIRECCIÓN GENERAL DE RECURSOS HUMANOS
           </p>
 
           <h2 className="mt-2 text-3xl font-bold text-[#621132]">
@@ -257,13 +257,13 @@ export default async function RHPage() {
 
             <div className="mb-5 flex flex-wrap justify-end gap-3">
 
-              {/* ALUMNOS ACTIVOS */}
+              {/* ESTUDIANTES ACTIVOS */}
 
               <Link
                 href="/rh/alumnos-activos"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#9D2449] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#621132]"
               >
-                👥 Alumnos activos
+                👥 Estudiantes activos
 
                 <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">
                   {alumnosActivos ?? 0}

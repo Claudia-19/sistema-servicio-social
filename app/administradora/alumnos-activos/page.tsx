@@ -186,12 +186,12 @@ export default async function AlumnosActivosAdministradoraPage() {
           </p>
 
           <h1 className="mt-2 text-3xl font-bold text-[#621132]">
-            Alumnos activos
+            Estudiantes activos
           </h1>
 
           <p className="mt-2 text-gray-600">
             Consulta la información y el seguimiento de los
-            prestadores actualmente activos.
+            estudiantes actualmente activos.
           </p>
         </div>
 
@@ -199,7 +199,7 @@ export default async function AlumnosActivosAdministradoraPage() {
         <div className="mb-8 grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">
-              Alumnos activos
+              Estudiantes activos
             </p>
 
             <p className="mt-2 text-3xl font-bold text-[#621132]">
@@ -214,14 +214,14 @@ export default async function AlumnosActivosAdministradoraPage() {
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-200 px-6 py-4">
             <h2 className="text-lg font-semibold text-gray-900">
-              Prestadores activos
+              Estudiantes activos
             </h2>
           </div>
 
           {alumnos.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <p className="text-gray-500">
-                Actualmente no hay alumnos activos.
+                Actualmente no hay estudiantes activos.
               </p>
             </div>
           ) : (

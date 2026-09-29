@@ -1,4 +1,5 @@
 export const instant = false;
+
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -91,12 +92,12 @@ export default async function CoordinadorPage() {
 
         {/* Resumen */}
         <div className="mb-8 grid gap-4 md:grid-cols-3">
-          {/* Vacantes registradas */}
+          {/* Vacantes cubiertas */}
           <div className="rounded-xl border border-dorado-claro bg-white p-6 shadow-sm">
             <div className="mb-4 h-1 w-12 rounded-full bg-vino-oscuro" />
 
             <p className="text-sm text-gris-oscuro">
-              Vacantes registradas
+              Vacantes cubiertas
             </p>
 
             <p className="mt-2 text-3xl font-bold text-vino-oscuro">
@@ -104,12 +105,12 @@ export default async function CoordinadorPage() {
             </p>
           </div>
 
-          {/* Vacantes disponibles */}
+          {/* Vacantes activas */}
           <div className="rounded-xl border border-dorado-claro bg-white p-6 shadow-sm">
             <div className="mb-4 h-1 w-12 rounded-full bg-dorado-oscuro" />
 
             <p className="text-sm text-gris-oscuro">
-              Vacantes disponibles
+              Vacantes activas
             </p>
 
             <p className="mt-2 text-3xl font-bold text-vino-oscuro">
@@ -121,12 +122,12 @@ export default async function CoordinadorPage() {
             </p>
           </div>
 
-          {/* Vacantes activas */}
+          {/* Áreas con vacantes activas */}
           <div className="rounded-xl border border-dorado-claro bg-white p-6 shadow-sm">
             <div className="mb-4 h-1 w-12 rounded-full bg-vino-claro" />
 
             <p className="text-sm text-gris-oscuro">
-              Vacantes activas
+              Áreas con vacantes activas
             </p>
 
             <p className="mt-2 text-3xl font-bold text-vino-oscuro">
@@ -202,6 +203,9 @@ export default async function CoordinadorPage() {
                       </p>
 
                       <p className="mt-2 text-sm text-gris-oscuro">
+                        <span className="font-medium">
+                          Conocimientos requeridos:
+                        </span>{" "}
                         {necesidad.perfil_requerido}
                       </p>
 
@@ -219,11 +223,13 @@ export default async function CoordinadorPage() {
                             necesidad.estado === "Disponible"
                               ? "bg-[#D4C29C] text-[#621132]"
                               : necesidad.estado === "Agotada"
-                              ? "bg-red-100 text-red-700"
+                              ? "bg-green-100 text-green-700"
                               : "bg-[#707272]/15 text-[#707272]"
                           }`}
                         >
-                          {necesidad.estado}
+                          {necesidad.estado === "Agotada"
+                            ? "Cubierta"
+                            : necesidad.estado}
                         </span>
                       </div>
                     </div>
@@ -263,7 +269,7 @@ export default async function CoordinadorPage() {
 
               <p className="mt-1 text-sm text-gris-oscuro">
                 Formato oficial para el registro de asistencia de los
-                prestadores.
+                estudiantes.
               </p>
             </div>
 

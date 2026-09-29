@@ -41,7 +41,9 @@ export default function DarBajaAlumno({
     }
 
     if (!folio.trim()) {
-      setError("Debes registrar el folio del acta de baja.");
+      setError(
+        "Debes registrar el número de oficio de baja de la dependencia."
+      );
       return;
     }
 
@@ -137,17 +139,17 @@ export default function DarBajaAlumno({
                 />
               </div>
 
-              {/* FOLIO */}
+              {/* NÚMERO DE OFICIO */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Folio del acta de baja *
+                  Número de oficio de baja de la dependencia *
                 </label>
 
                 <input
                   type="text"
                   value={folio}
                   onChange={(e) => setFolio(e.target.value)}
-                  placeholder="Ej. ACTA-2026-001"
+                  placeholder="PMP/XX/XXX/26"
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#9D2449] focus:ring-2 focus:ring-[#9D2449]/20"
                 />
               </div>

@@ -488,7 +488,7 @@ export default async function HistorialPrestadoresPage({
           </p>
 
           <h1 className="mt-2 text-3xl font-bold text-[#621132]">
-            Historial de prestadores
+            Historial de estudiantes
           </h1>
 
           <p className="mt-2 text-gray-600">

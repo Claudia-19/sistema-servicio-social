@@ -1,4 +1,4 @@
-﻿export const instant = false;
+export const instant = false;
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -94,7 +94,7 @@ export default async function AlumnosActivosPage({
   );
 
   // =========================================================
-  // OBTENER ALUMNOS ACTIVOS
+  // OBTENER ESTUDIANTES ACTIVOS
   // =========================================================
 
   const {
@@ -174,7 +174,7 @@ export default async function AlumnosActivosPage({
       : { data: [], error: null };
 
   // =========================================================
-  // ÃREAS / SECRETARÃAS
+  // ÁREAS / SECRETARÍAS
   // =========================================================
 
   const areaIds = (necesidades ?? [])
@@ -361,7 +361,7 @@ export default async function AlumnosActivosPage({
               horasRestantes <= 40
             ) {
               estadoHoras =
-                "PrÃ³ximo a finalizar";
+                "Próximo a finalizar";
             } else {
               estadoHoras =
                 "En proceso";
@@ -369,54 +369,54 @@ export default async function AlumnosActivosPage({
           }
 
           const nombreCompleto =
-  solicitud.nombre || "Sin nombre";
+            solicitud.nombre || "Sin nombre";
 
-return {
-  asignacionId:
-    asignacion.id,
+          return {
+            asignacionId:
+              asignacion.id,
 
-  nombre:
-    nombreCompleto,
+            nombre:
+              nombreCompleto,
 
-  matricula:
-    solicitud.matricula,
+            matricula:
+              solicitud.matricula,
 
-  institucion:
-    solicitud.institucion_educativa,
+            institucion:
+              solicitud.institucion_educativa,
 
-  carrera:
-    solicitud.carrera,
+            carrera:
+              solicitud.carrera,
 
-  secretaria:
-    area?.nombre ??
-    "Sin SecretarÃ­a",
+            secretaria:
+              area?.nombre ??
+              "Sin Secretaría",
 
-  areaAsignada:
-    necesidad?.area_asignada ??
-    "Sin Ã¡rea asignada",
+            areaAsignada:
+              necesidad?.area_asignada ??
+              "Sin área asignada",
 
-  jefeInmediato:
-    necesidad?.jefe_inmediato ??
-    "Sin jefe inmediato",
+            jefeInmediato:
+              necesidad?.jefe_inmediato ??
+              "Sin jefe inmediato",
 
-  fechaActivacion:
-    asignacion.fecha_activacion,
+            fechaActivacion:
+              asignacion.fecha_activacion,
 
-  horasRequeridas,
+            horasRequeridas,
 
-  horasAcumuladas,
+            horasAcumuladas,
 
-  horasRestantes,
+            horasRestantes,
 
-  porcentaje,
+            porcentaje,
 
-  horasDelMes,
+            horasDelMes,
 
-  estadoHoras,
+            estadoHoras,
 
-  registros:
-    registrosAlumno,
-};
+            registros:
+              registrosAlumno,
+          };
         }
       )
       .filter(
@@ -427,7 +427,7 @@ return {
       );
 
   // =========================================================
-  // SECRETARÃAS
+  // SECRETARÍAS
   // =========================================================
 
   const secretarias =
@@ -536,7 +536,7 @@ return {
 
             <img
               src="/logo-pachuca.png"
-              alt="Pachuca Capital de la TransformaciÃ³n"
+              alt="Pachuca Capital de la Transformación"
               className="h-16 w-auto object-contain"
             />
 
@@ -552,7 +552,7 @@ return {
               </p>
 
               <p className="text-xs text-white/80">
-                Recursos Humanos
+                DIRECCIÓN GENERAL DE RECURSOS HUMANOS
               </p>
 
             </div>
@@ -575,21 +575,21 @@ return {
           href="/rh"
           className="text-sm font-medium text-[#9D2449] hover:text-[#621132]"
         >
-          â† Regresar a solicitudes
+          ← Regresar a solicitudes
         </Link>
 
         {/* ===================================================
-            TÃTULO
+            TÍTULO
         ==================================================== */}
 
         <div className="mt-6 mb-8">
 
           <p className="text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
-            Recursos Humanos
+            DIRECCIÓN GENERAL DE RECURSOS HUMANOS
           </p>
 
           <h1 className="mt-2 text-3xl font-bold text-[#621132]">
-            Alumnos activos
+            Estudiantes activos
           </h1>
 
           <p className="mt-2 text-gray-600">
@@ -610,7 +610,7 @@ return {
 
             <p className="font-medium">
               No fue posible consultar la
-              informaciÃ³n de los alumnos.
+              información de los alumnos.
             </p>
 
             <p className="mt-1">
@@ -632,7 +632,7 @@ return {
               <div className="rounded-xl border border-[#D4C29C] bg-white p-5 shadow-sm">
 
                 <p className="text-sm font-medium text-gray-500">
-                  Alumnos activos
+                  Estudiantes activos
                 </p>
 
                 <p className="mt-2 text-3xl font-bold text-[#621132]">
@@ -640,7 +640,7 @@ return {
                 </p>
 
                 <p className="mt-1 text-xs text-gray-400">
-                  Prestadores actualmente activos
+                  Estudiantes actualmente activos
                 </p>
 
               </div>
@@ -680,20 +680,20 @@ return {
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-500">
-                  Filtra por SecretarÃ­a, alumno,
-                  mes o aÃ±o.
+                  Filtra por Secretaría, alumno,
+                  mes o año.
                 </p>
 
               </div>
 
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 
-                {/* SECRETARÃA */}
+                {/* SECRETARÍA */}
 
                 <div>
 
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    SecretarÃ­a
+                    Secretaría
                   </label>
 
                   <select
@@ -705,7 +705,7 @@ return {
                   >
 
                     <option value="Todas">
-                      Todas las SecretarÃ­as
+                      Todas las Secretarías
                     </option>
 
                     {secretarias.map(
@@ -737,7 +737,7 @@ return {
                     defaultValue={
                       buscar
                     }
-                    placeholder="Nombre, carrera o matrÃ­cula"
+                    placeholder="Nombre, carrera o matrícula"
                     className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-[#9D2449] focus:ring-2 focus:ring-[#9D2449]/20"
                   />
 
@@ -783,12 +783,12 @@ return {
 
                 </div>
 
-                {/* AÃ‘O */}
+                {/* AÑO */}
 
                 <div>
 
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    AÃ±o
+                    Año
                   </label>
 
                   <input
@@ -812,7 +812,7 @@ return {
                   type="submit"
                   className="rounded-lg bg-[#621132] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#9D2449]"
                 >
-                  ðŸ”Ž Aplicar filtros
+                  🔎 Aplicar filtros
                 </button>
 
                 <Link
@@ -842,7 +842,7 @@ return {
 
                   <p className="mt-1 text-sm text-gray-500">
                     Registra las horas de todos los
-                    alumnos activos para el mes
+                    estudiantes activos para el mes
                     seleccionado.
                   </p>
 
@@ -869,7 +869,7 @@ return {
                 <div className="p-12 text-center">
 
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-2xl">
-                    ðŸ”Ž
+                    🔎
                   </div>
 
                   <p className="mt-4 font-medium text-gray-700">
@@ -877,8 +877,8 @@ return {
                   </p>
 
                   <p className="mt-2 text-sm text-gray-500">
-                    Prueba cambiando la SecretarÃ­a
-                    o el criterio de bÃºsqueda.
+                    Prueba cambiando la Secretaría
+                    o el criterio de búsqueda.
                   </p>
 
                 </div>
@@ -961,7 +961,7 @@ return {
                             <p className="mt-1 text-sm text-gray-500">
                               {
                                 alumno.institucion ||
-                                "Sin instituciÃ³n"
+                                "Sin institución"
                               }
                             </p>
 
@@ -969,7 +969,7 @@ return {
 
                               <span>
                                 <strong>
-                                  SecretarÃ­a:
+                                  Secretaría:
                                 </strong>{" "}
                                 {
                                   alumno.secretaria
@@ -978,7 +978,7 @@ return {
 
                               <span>
                                 <strong>
-                                  Ãrea:
+                                  Área:
                                 </strong>{" "}
                                 {
                                   alumno.areaAsignada
@@ -1026,14 +1026,14 @@ return {
             <div className="mt-6 rounded-xl border border-[#D4C29C] bg-[#D4C29C]/10 p-5">
 
               <p className="text-sm font-medium text-[#621132]">
-                ðŸ’¡ Importante
+                💡 Importante
               </p>
 
               <p className="mt-1 text-sm leading-6 text-gray-600">
                 Las horas se registran por mes y por
                 alumno. Puedes filtrar la lista para
-                capturar Ãºnicamente los alumnos de una
-                SecretarÃ­a o buscar un alumno especÃ­fico.
+                capturar únicamente los alumnos de una
+                Secretaría o buscar un alumno específico.
                 El historial conserva los registros
                 anteriores.
               </p>

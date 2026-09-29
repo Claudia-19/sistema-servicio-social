@@ -124,7 +124,7 @@ export default function FinalizarAlumno({
                   Al finalizar, el alumno cambiará a estado
                   <strong> Finalizada</strong>, se registrará la fecha
                   de término y dejará de aparecer en la lista de
-                  alumnos activos.
+                  estudiantes activos.
                 </p>
               </div>
 

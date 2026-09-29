@@ -14,11 +14,14 @@ type Necesidad = {
   horario: string;
   vacantes_disponibles: number;
   estado: string;
-  areas?: {
-    nombre: string;
-  } | {
-    nombre: string;
-  }[] | null;
+  areas?:
+    | {
+        nombre: string;
+      }
+    | {
+        nombre: string;
+      }[]
+    | null;
 };
 
 type Carrera = {
@@ -40,22 +43,33 @@ export default function PosiblesNecesidades({
   const router = useRouter();
   const supabase = createClient();
 
-  const [necesidadesCompatibles, setNecesidadesCompatibles] = useState<
+  const [necesidadesDisponibles, setNecesidadesDisponibles] = useState<
     Necesidad[]
   >([]);
 
+  const [compatibilidades, setCompatibilidades] = useState<
+    Record<number, boolean | null>
+  >({});
+
   const [seleccionada, setSeleccionada] = useState<number | null>(null);
+  const [otraVacanteSeleccionada, setOtraVacanteSeleccionada] =
+    useState(false);
+  const [otraVacante, setOtraVacante] = useState("");
+
   const [loading, setLoading] = useState(false);
-  const [cargandoCompatibilidad, setCargandoCompatibilidad] = useState(true);
+  const [cargandoCompatibilidad, setCargandoCompatibilidad] =
+    useState(true);
   const [error, setError] = useState("");
 
-  // Buscar las necesidades compatibles con la carrera del alumno
+  // =========================================================
+  // MOSTRAR TODAS LAS VACANTES Y CALCULAR COMPATIBILIDAD
+  // =========================================================
+
   useEffect(() => {
     const obtenerCompatibilidad = async () => {
       setCargandoCompatibilidad(true);
       setError("");
 
-      // Obtener todas las carreras del catálogo con su familia
       const { data: carreras, error: errorCarreras } = await supabase
         .from("carreras")
         .select("nombre, familia_id")
@@ -70,7 +84,6 @@ export default function PosiblesNecesidades({
 
       const catalogo = (carreras ?? []) as Carrera[];
 
-      // Normalizar texto para comparar nombres
       const normalizar = (texto: string) =>
         texto
           .trim()
@@ -78,40 +91,31 @@ export default function PosiblesNecesidades({
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "");
 
-      // Buscar la carrera del alumno.
-// Se eliminan palabras que indican el nivel o grado académico
-// para poder relacionar, por ejemplo:
-// "Licenciatura en Administración" con "Administración".
-const limpiarNombreCarrera = (texto: string) =>
-  normalizar(texto)
-    .replace(/^licenciatura en\s+/, "")
-    .replace(/^licenciatura\s+/, "")
-    .replace(/^ingenieria en\s+/, "")
-    .replace(/^ingenieria\s+/, "")
-    .replace(/^ingenieria de\s+/, "")
-    .replace(/^ingenieria\s+de\s+/, "")
-    .replace(/^tecnico superior universitario en\s+/, "")
-    .trim();
+      const limpiarNombreCarrera = (texto: string) =>
+        normalizar(texto)
+          .replace(/^licenciatura en\s+/, "")
+          .replace(/^licenciatura\s+/, "")
+          .replace(/^ingenieria en\s+/, "")
+          .replace(/^ingenieria\s+/, "")
+          .replace(/^ingenieria de\s+/, "")
+          .replace(/^tecnico superior universitario en\s+/, "")
+          .trim();
 
-const carreraAlumnoCatalogo = catalogo.find(
-  (carrera) =>
-    limpiarNombreCarrera(carrera.nombre) ===
-    limpiarNombreCarrera(carreraAlumno)
-);
+      const carreraAlumnoCatalogo = catalogo.find(
+        (carrera) =>
+          limpiarNombreCarrera(carrera.nombre) ===
+          limpiarNombreCarrera(carreraAlumno)
+      );
 
-      // Si la carrera del alumno no está en el catálogo,
-      // no podemos determinar su familia.
-      if (!carreraAlumnoCatalogo) {
-        setNecesidadesCompatibles([]);
-        setCargandoCompatibilidad(false);
-        return;
-      }
+      const familiaAlumno =
+        carreraAlumnoCatalogo?.familia_id ?? null;
 
-      const familiaAlumno = carreraAlumnoCatalogo.familia_id;
+      const nuevasCompatibilidades: Record<
+        number,
+        boolean | null
+      > = {};
 
-      // Filtrar únicamente necesidades cuya carrera
-      // pertenezca a la misma familia
-      const compatibles = necesidades.filter((necesidad) => {
+      necesidades.forEach((necesidad) => {
         const nombreCarreraNecesidad =
           necesidad.carrera === "Otra"
             ? necesidad.carrera_otra || ""
@@ -123,23 +127,39 @@ const carreraAlumnoCatalogo = catalogo.find(
             normalizar(nombreCarreraNecesidad)
         );
 
-        if (!carreraNecesidad) {
-          return false;
+        if (!familiaAlumno || !carreraNecesidad) {
+          nuevasCompatibilidades[necesidad.id] = null;
+          return;
         }
 
-        return carreraNecesidad.familia_id === familiaAlumno;
+        nuevasCompatibilidades[necesidad.id] =
+          carreraNecesidad.familia_id === familiaAlumno;
       });
 
-      setNecesidadesCompatibles(compatibles);
+      // Se muestran todas las vacantes disponibles.
+      // La compatibilidad solamente sirve como referencia.
+      setNecesidadesDisponibles(necesidades);
+      setCompatibilidades(nuevasCompatibilidades);
       setCargandoCompatibilidad(false);
     };
 
     obtenerCompatibilidad();
   }, [carreraAlumno, necesidades, supabase]);
 
+  // =========================================================
+  // CREAR PROPUESTA
+  // =========================================================
+
   const crearPropuesta = async () => {
-    if (!seleccionada) {
-      setError("Selecciona una necesidad.");
+    if (!seleccionada && !otraVacanteSeleccionada) {
+      setError("Selecciona una vacante.");
+      return;
+    }
+
+    if (otraVacanteSeleccionada && !otraVacante.trim()) {
+      setError(
+        "Especifica la vacante o área que corresponde a la opción Otra vacante."
+      );
       return;
     }
 
@@ -161,11 +181,17 @@ const carreraAlumnoCatalogo = catalogo.find(
       {
         p_solicitud_id: solicitudId,
         p_necesidad_id: seleccionada,
+        p_otra_vacante: otraVacanteSeleccionada
+          ? otraVacante.trim()
+          : null,
       }
     );
 
     if (error) {
-      console.error("ERROR COMPLETO AL CREAR PROPUESTA:", error);
+      console.error(
+        "ERROR COMPLETO AL CREAR PROPUESTA:",
+        error
+      );
 
       setError(
         `No fue posible crear la propuesta: ${error.message}`
@@ -181,7 +207,31 @@ const carreraAlumnoCatalogo = catalogo.find(
     router.refresh();
   };
 
-  // Mientras se consulta la compatibilidad
+  // =========================================================
+  // SELECCIONAR VACANTE NORMAL
+  // =========================================================
+
+  const seleccionarNecesidad = (id: number) => {
+    setSeleccionada(id);
+    setOtraVacanteSeleccionada(false);
+    setOtraVacante("");
+    setError("");
+  };
+
+  // =========================================================
+  // SELECCIONAR OTRA VACANTE
+  // =========================================================
+
+  const seleccionarOtraVacante = () => {
+    setSeleccionada(null);
+    setOtraVacanteSeleccionada(true);
+    setError("");
+  };
+
+  // =========================================================
+  // CARGANDO
+  // =========================================================
+
   if (cargandoCompatibilidad) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -190,43 +240,104 @@ const carreraAlumnoCatalogo = catalogo.find(
         </h3>
 
         <p className="mt-2 text-sm text-gray-600">
-          Buscando necesidades relacionadas con la carrera del alumno...
+          Consultando vacantes disponibles...
         </p>
       </div>
     );
   }
 
-  // Si no existen necesidades compatibles
-  if (necesidadesCompatibles.length === 0) {
+  // =========================================================
+  // SIN VACANTES
+  // =========================================================
+
+  if (necesidadesDisponibles.length === 0) {
     return (
       <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-6">
         <h3 className="font-semibold text-yellow-900">
-          No hay necesidades compatibles
+          No hay vacantes disponibles
         </h3>
 
         <p className="mt-2 text-sm text-yellow-800">
-          Actualmente no existen vacantes disponibles relacionadas con la
-          carrera del alumno.
+          Actualmente no existen vacantes disponibles para realizar
+          una propuesta de asignación.
         </p>
 
         <p className="mt-2 text-sm text-yellow-800">
           <strong>Carrera del alumno:</strong>{" "}
           {carreraAlumno}
         </p>
+
+        <button
+          type="button"
+          onClick={seleccionarOtraVacante}
+          className={`mt-5 w-full rounded-xl border p-5 text-left transition ${
+            otraVacanteSeleccionada
+              ? "border-[#621132] bg-white ring-2 ring-[#621132]"
+              : "border-yellow-300 bg-white hover:border-[#621132]"
+          }`}
+        >
+          <p className="font-semibold text-[#621132]">
+            Otra vacante
+          </p>
+
+          <p className="mt-1 text-sm text-gray-600">
+            Permite registrar una vacante o área diferente.
+          </p>
+        </button>
+
+        {otraVacanteSeleccionada && (
+          <div className="mt-4">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Especifique la vacante o área *
+            </label>
+
+            <input
+              type="text"
+              value={otraVacante}
+              onChange={(e) => setOtraVacante(e.target.value)}
+              placeholder="Ej. Departamento de Profesionalización"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#9D2449] focus:ring-2 focus:ring-[#9D2449]/20"
+            />
+
+            {error && (
+              <p className="mt-3 text-sm text-red-700">
+                {error}
+              </p>
+            )}
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={crearPropuesta}
+                disabled={loading || !otraVacante.trim()}
+                className="rounded-lg bg-[#621132] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#9D2449] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading
+                  ? "Creando propuesta..."
+                  : "Proponer esta necesidad"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
+  // =========================================================
+  // INTERFAZ
+  // =========================================================
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+
       <div>
         <h3 className="text-lg font-semibold text-gray-900">
           Posibles necesidades
         </h3>
 
         <p className="mt-1 text-sm text-gray-600">
-          Selecciona una de las necesidades relacionadas con la carrera del
-          alumno para proponer la asignación.
+          Selecciona una de las vacantes disponibles para proponer
+          la asignación.
         </p>
 
         <p className="mt-3 text-sm text-gray-500">
@@ -235,34 +346,48 @@ const carreraAlumnoCatalogo = catalogo.find(
             {carreraAlumno}
           </span>
         </p>
+
+        <p className="mt-2 text-xs text-gray-500">
+          Se muestran todas las vacantes disponibles. La compatibilidad
+          se presenta únicamente como referencia y no limita la selección.
+        </p>
       </div>
 
       <div className="mt-5 space-y-4">
-        {necesidadesCompatibles.map((necesidad) => {
+
+        {necesidadesDisponibles.map((necesidad) => {
           const area = Array.isArray(necesidad.areas)
             ? necesidad.areas[0]?.nombre
             : necesidad.areas?.nombre;
 
           const carrera =
             necesidad.carrera === "Otra"
-              ? necesidad.carrera_otra || "Carrera no especificada"
+              ? necesidad.carrera_otra ||
+                "Carrera no especificada"
               : necesidad.carrera;
 
           const seleccionadaActual =
             seleccionada === necesidad.id;
 
+          const compatibilidad =
+            compatibilidades[necesidad.id];
+
           return (
             <button
               key={necesidad.id}
               type="button"
-              onClick={() => setSeleccionada(necesidad.id)}
+              onClick={() =>
+                seleccionarNecesidad(necesidad.id)
+              }
               className={`w-full rounded-xl border p-5 text-left transition ${
                 seleccionadaActual
                   ? "border-gray-900 bg-gray-50 ring-2 ring-gray-900"
                   : "border-gray-200 hover:border-gray-400 hover:bg-gray-50"
               }`}
             >
+
               <div className="flex items-start justify-between gap-4">
+
                 <div>
                   <p className="text-sm text-gray-500">
                     Área de adscripción
@@ -276,9 +401,11 @@ const carreraAlumnoCatalogo = catalogo.find(
                 <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
                   {necesidad.vacantes_disponibles} vacante(s)
                 </span>
+
               </div>
 
               <div className="mt-4 grid gap-4 md:grid-cols-2">
+
                 <div>
                   <p className="text-sm text-gray-500">
                     Carrera requerida
@@ -318,11 +445,93 @@ const carreraAlumnoCatalogo = catalogo.find(
                     {necesidad.perfil_requerido}
                   </p>
                 </div>
+
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Compatibilidad
+                  </p>
+
+                  <p
+                    className={`mt-1 text-sm font-semibold ${
+                      compatibilidad === true
+                        ? "text-green-700"
+                        : compatibilidad === false
+                        ? "text-gray-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {compatibilidad === true
+                      ? "Compatible"
+                      : compatibilidad === false
+                      ? "No coincide con la familia de carrera"
+                      : "No determinada"}
+                  </p>
+                </div>
+
               </div>
+
             </button>
           );
         })}
+
+        {/* =====================================================
+            OTRA VACANTE
+        ===================================================== */}
+
+        <button
+          type="button"
+          onClick={seleccionarOtraVacante}
+          className={`w-full rounded-xl border p-5 text-left transition ${
+            otraVacanteSeleccionada
+              ? "border-[#621132] bg-gray-50 ring-2 ring-[#621132]"
+              : "border-gray-200 hover:border-gray-400 hover:bg-gray-50"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-4">
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Vacante
+              </p>
+
+              <h4 className="mt-1 font-semibold text-[#621132]">
+                Otra vacante
+              </h4>
+
+              <p className="mt-1 text-sm text-gray-600">
+                Registrar una vacante o área diferente.
+              </p>
+            </div>
+
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+              Personalizada
+            </span>
+
+          </div>
+        </button>
+
       </div>
+
+      {otraVacanteSeleccionada && (
+        <div className="mt-5 rounded-xl border border-[#D4C29C] bg-[#D4C29C]/10 p-5">
+
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Especifique la vacante o área *
+          </label>
+
+          <input
+            type="text"
+            value={otraVacante}
+            onChange={(e) => {
+              setOtraVacante(e.target.value);
+              setError("");
+            }}
+            placeholder="Ej. Departamento de Profesionalización"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#9D2449] focus:ring-2 focus:ring-[#9D2449]/20"
+          />
+
+        </div>
+      )}
 
       {error && (
         <p className="mt-4 text-sm text-red-700">
@@ -331,17 +540,24 @@ const carreraAlumnoCatalogo = catalogo.find(
       )}
 
       <div className="mt-6 flex justify-end">
+
         <button
           type="button"
           onClick={crearPropuesta}
-          disabled={loading || seleccionada === null}
+          disabled={
+            loading ||
+            (seleccionada === null &&
+              !otraVacanteSeleccionada)
+          }
           className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading
             ? "Creando propuesta..."
             : "Proponer esta necesidad"}
         </button>
+
       </div>
+
     </div>
   );
 }

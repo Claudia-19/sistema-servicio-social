@@ -32,6 +32,8 @@ export default function SolicitudPage() {
   const [solicitudExistente, setSolicitudExistente] = useState(false);
   const [cargandoSolicitud, setCargandoSolicitud] = useState(true);
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
+  const [aceptaAvisoPrivacidad, setAceptaAvisoPrivacidad] =
+    useState(false);
 
   useEffect(() => {
     const obtenerSolicitud = async () => {
@@ -70,33 +72,31 @@ export default function SolicitudPage() {
           informacionAdicional: solicitud.informacion_adicional ?? "",
         });
 
-        /*
-         * La columna fotografia_url ahora puede contener:
-         * 1. Una ruta interna:
-         *    usuario-id/archivo.jpg
-         *
-         * 2. Una URL pública antigua:
-         *    https://...supabase.co/storage/v1/object/public/fotos-alumnos/usuario-id/archivo.jpg
-         *
-         * Convertimos ambas posibilidades a una ruta de Storage
-         * y generamos una URL firmada.
-         */
         if (solicitud.fotografia_url) {
           let rutaFotografia = solicitud.fotografia_url;
 
-          if (rutaFotografia.includes("/storage/v1/object/public/fotos-alumnos/")) {
+          if (
+            rutaFotografia.includes(
+              "/storage/v1/object/public/fotos-alumnos/"
+            )
+          ) {
             rutaFotografia = rutaFotografia.split(
               "/storage/v1/object/public/fotos-alumnos/"
             )[1];
           }
 
           if (rutaFotografia) {
-            const { data: signedUrlData, error: signedUrlError } =
-              await supabase.storage
-                .from("fotos-alumnos")
-                .createSignedUrl(rutaFotografia, 60 * 60);
+            const {
+              data: signedUrlData,
+              error: signedUrlError,
+            } = await supabase.storage
+              .from("fotos-alumnos")
+              .createSignedUrl(rutaFotografia, 60 * 60);
 
-            if (!signedUrlError && signedUrlData?.signedUrl) {
+            if (
+              !signedUrlError &&
+              signedUrlData?.signedUrl
+            ) {
               setFotografiaUrl(signedUrlData.signedUrl);
             }
           }
@@ -152,11 +152,21 @@ export default function SolicitudPage() {
     setFotografiaPreview(URL.createObjectURL(archivo));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
 
     setLoading(true);
     setError("");
+
+    if (!aceptaAvisoPrivacidad) {
+      setError(
+        "Debe aceptar el Aviso de Privacidad para enviar la solicitud."
+      );
+      setLoading(false);
+      return;
+    }
 
     const {
       data: { user },
@@ -164,14 +174,16 @@ export default function SolicitudPage() {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      setError("Tu sesión ha expirado. Inicia sesión nuevamente.");
+      setError(
+        "Su sesión ha expirado. Inicie sesión nuevamente."
+      );
       setLoading(false);
       return;
     }
 
     if (!fotografia) {
       setError(
-        "Debes seleccionar una fotografía para enviar la solicitud."
+        "Debe seleccionar una fotografía para enviar la solicitud."
       );
       setLoading(false);
       return;
@@ -195,18 +207,13 @@ export default function SolicitudPage() {
       console.error(uploadError);
 
       setError(
-        "No fue posible subir la fotografía. Inténtalo nuevamente."
+        "No fue posible subir la fotografía. Inténtelo nuevamente."
       );
 
       setLoading(false);
       return;
     }
 
-    /*
-     * IMPORTANTE:
-     * Como el bucket es privado, ya NO guardamos getPublicUrl().
-     * Guardamos únicamente la ruta interna del archivo.
-     */
     const { error: insertError } = await supabase
       .from("solicitudes")
       .insert({
@@ -220,7 +227,7 @@ export default function SolicitudPage() {
         telefono: formulario.telefono,
         correo: formulario.correo,
         tipo_proceso: formulario.tipoProceso,
-        fecha_inicio: formulario.fechaInicio,
+        fecha_inicio: formulario.fechaInicio || null,
         horario_propuesto: formulario.horario,
         informacion_adicional: formulario.informacionAdicional,
         fotografia_url: rutaFotografia,
@@ -234,17 +241,13 @@ export default function SolicitudPage() {
         .remove([rutaFotografia]);
 
       setError(
-        "No fue posible enviar la solicitud. Inténtalo nuevamente."
+        "No fue posible enviar la solicitud. Inténtelo nuevamente."
       );
 
       setLoading(false);
       return;
     }
 
-    /*
-     * Generamos una URL firmada para mostrar inmediatamente
-     * la fotografía al alumno.
-     */
     const { data: signedUrlData } = await supabase.storage
       .from("fotos-alumnos")
       .createSignedUrl(rutaFotografia, 60 * 60);
@@ -269,7 +272,7 @@ export default function SolicitudPage() {
 
         <div className="mx-auto max-w-5xl px-6 py-10">
           <p className="text-sm text-gris-oscuro">
-            Cargando tu solicitud...
+            Cargando su solicitud...
           </p>
         </div>
       </main>
@@ -279,7 +282,6 @@ export default function SolicitudPage() {
   if (solicitudEnviada) {
     return (
       <main className="min-h-screen bg-gray-50">
-        {/* ENCABEZADO INSTITUCIONAL */}
         <header className="border-b border-[#621132] bg-[#621132]">
           <div className="mx-auto max-w-7xl px-6 py-3">
             <img
@@ -290,12 +292,13 @@ export default function SolicitudPage() {
           </div>
         </header>
 
-        {/* CONFIRMACIÓN */}
         <section className="flex min-h-[calc(100vh-88px)] items-center justify-center px-6 py-12">
           <div className="w-full max-w-2xl">
             <div className="rounded-xl border border-dorado-claro bg-white p-8 text-center shadow-sm sm:p-10">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#D4C29C]">
-                <span className="text-3xl text-vino-oscuro">✓</span>
+                <span className="text-3xl text-vino-oscuro">
+                  ✓
+                </span>
               </div>
 
               <h2 className="text-3xl font-bold text-vino-oscuro">
@@ -303,7 +306,7 @@ export default function SolicitudPage() {
               </h2>
 
               <p className="mt-5 text-base leading-7 text-gris-oscuro">
-                Tu solicitud ha sido registrada correctamente.
+                Hemos recibido su solicitud correctamente.
               </p>
 
               <p className="mt-3 text-base leading-7 text-gris-oscuro">
@@ -311,7 +314,7 @@ export default function SolicitudPage() {
                 <strong className="text-vino-oscuro">
                   Departamento de Profesionalización
                 </strong>{" "}
-                atenderá tu solicitud en un plazo máximo de{" "}
+                atenderá su solicitud en un plazo máximo de{" "}
                 <strong className="text-vino-oscuro">
                   dos días hábiles
                 </strong>
@@ -319,12 +322,12 @@ export default function SolicitudPage() {
               </p>
 
               <p className="mt-3 text-base leading-7 text-gris-oscuro">
-                Te recomendamos estar pendiente de tu{" "}
+                Le recomendamos estar pendiente de su{" "}
                 <strong className="text-vino-oscuro">
                   correo electrónico
                 </strong>
-                , ya que recibirás información relacionada con el seguimiento
-                de tu solicitud.
+                , ya que recibirá información relacionada con
+                el seguimiento de su solicitud.
               </p>
 
               <div className="mt-8">
@@ -358,9 +361,19 @@ export default function SolicitudPage() {
       </header>
 
       <section className="mx-auto max-w-5xl px-6 py-10">
+        {/* REGRESAR */}
+        <div className="mb-6">
+          <a
+            href="/alumno"
+            className="inline-flex items-center text-sm text-gris-oscuro transition hover:text-vino-oscuro"
+          >
+            ← Regresar
+          </a>
+        </div>
+
         <div className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-wider text-vino-claro">
-            Alumno / Prestador
+            Estudiante
           </p>
 
           <h2 className="mt-2 text-3xl font-bold text-vino-oscuro">
@@ -368,7 +381,7 @@ export default function SolicitudPage() {
           </h2>
 
           <p className="mt-2 text-gris-oscuro">
-            Completa la información solicitada para iniciar tu proceso.
+            Complete la información solicitada para iniciar su proceso.
           </p>
         </div>
 
@@ -381,11 +394,11 @@ export default function SolicitudPage() {
             <div className="mb-4 h-1 w-12 rounded-full bg-vino-oscuro" />
 
             <h3 className="text-lg font-semibold text-vino-oscuro">
-              Datos del alumno
+              Datos del estudiante
             </h3>
 
             <p className="mt-1 text-sm text-gris-oscuro">
-              Proporciona tus datos personales y académicos.
+              Proporcione sus datos personales y académicos.
             </p>
           </div>
 
@@ -405,14 +418,18 @@ export default function SolicitudPage() {
                   htmlFor={name}
                   className="mb-2 block text-sm font-medium text-vino-oscuro"
                 >
-                  {label}
+                  {label} <span className="text-red-600">*</span>
                 </label>
 
                 <input
                   id={name}
                   name={name}
                   type={type}
-                  value={formulario[name as keyof typeof formulario]}
+                  value={
+                    formulario[
+                      name as keyof typeof formulario
+                    ]
+                  }
                   onChange={handleChange}
                   required
                   disabled={solicitudExistente}
@@ -432,7 +449,7 @@ export default function SolicitudPage() {
                 htmlFor="tipoProceso"
                 className="mb-2 block text-sm font-medium text-vino-oscuro"
               >
-                Tipo de proceso
+                Tipo de proceso <span className="text-red-600">*</span>
               </label>
 
               <select
@@ -444,8 +461,12 @@ export default function SolicitudPage() {
                 disabled={solicitudExistente}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50"
               >
-                <option value="">Selecciona una opción</option>
-                <option value="Servicio social">Servicio social</option>
+                <option value="">
+                  Seleccione una opción
+                </option>
+                <option value="Servicio social">
+                  Servicio social
+                </option>
                 <option value="Prácticas profesionales">
                   Prácticas profesionales
                 </option>
@@ -469,7 +490,6 @@ export default function SolicitudPage() {
                 type="date"
                 value={formulario.fechaInicio}
                 onChange={handleChange}
-                required
                 disabled={solicitudExistente}
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50"
               />
@@ -481,7 +501,7 @@ export default function SolicitudPage() {
                 htmlFor="horario"
                 className="mb-2 block text-sm font-medium text-vino-oscuro"
               >
-                Horario propuesto
+                Horario propuesto <span className="text-red-600">*</span>
               </label>
 
               <select
@@ -493,9 +513,15 @@ export default function SolicitudPage() {
                 disabled={solicitudExistente}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50 disabled:text-gray-600"
               >
-                <option value="">Selecciona un horario</option>
-                <option value="Matutino">Matutino</option>
-                <option value="Vespertino">Vespertino</option>
+                <option value="">
+                  Seleccione un horario
+                </option>
+                <option value="Matutino (8:30-12:30)">
+                  Matutino (8:30-12:30)
+                </option>
+                <option value="Vespertino (12:30-16:30)">
+                  Vespertino (12:30-16:30)
+                </option>
               </select>
             </div>
           </div>
@@ -506,13 +532,13 @@ export default function SolicitudPage() {
               htmlFor="fotografia"
               className="mb-2 block text-sm font-medium text-vino-oscuro"
             >
-              Fotografía del alumno{" "}
+              Fotografía del estudiante{" "}
               <span className="text-red-600">*</span>
             </label>
 
             <p className="mb-3 text-sm leading-6 text-gris-oscuro">
-              Selecciona una fotografía reciente del alumno. La fotografía es
-              obligatoria para enviar la solicitud.
+              Seleccione una fotografía reciente del estudiante.
+              La fotografía es obligatoria para enviar la solicitud.
             </p>
 
             <input
@@ -535,7 +561,7 @@ export default function SolicitudPage() {
                 <div className="overflow-hidden rounded-lg border border-dorado-claro bg-gray-50 p-2">
                   <img
                     src={fotografiaPreview || fotografiaUrl}
-                    alt="Vista previa de la fotografía del alumno"
+                    alt="Vista previa de la fotografía del estudiante"
                     className="h-48 w-40 object-cover"
                   />
                 </div>
@@ -553,10 +579,14 @@ export default function SolicitudPage() {
             </label>
 
             <p className="mb-3 text-sm leading-6 text-gris-oscuro">
-              Puedes proporcionar información adicional que consideres
-              relevante para tu proceso, como alguna condición que deba ser
-              tomada en cuenta, necesidades educativas, situaciones particulares
-              o disponibilidad para ajustar o adelantar tu fecha de inicio.
+              Puede proporcionar información adicional que considere
+              relevante para su proceso, como alguna condición que deba
+              ser tomada en cuenta, necesidades educativas, situaciones
+              particulares o{" "}
+              <strong className="font-bold text-red-600">
+                disponibilidad para ajustar o adelantar su fecha de inicio
+              </strong>
+              .
             </p>
 
             <textarea
@@ -566,7 +596,7 @@ export default function SolicitudPage() {
               onChange={handleChange}
               disabled={solicitudExistente}
               rows={5}
-              placeholder="Escribe aquí la información que consideres relevante para tu proceso."
+              placeholder="Escriba aquí la información que considere relevante para su proceso."
               className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-50 disabled:text-gray-600"
             />
           </div>
@@ -584,12 +614,12 @@ export default function SolicitudPage() {
               Capacitación, dependiente de la Dirección de Recursos Humanos;
               será la responsable del uso, protección y tratamiento de sus
               datos personales, el uso de la información solicitada es para
-              proveerle los servicios de localización del o la alumna, en caso
-              de extravío, aclaraciones, omisiones o accidente. De requerirse
-              hacer alguna transferencia de sus datos personales, para otro
-              fin, se solicitará de su consentimiento y se le hará saber la
-              finalidad del mismo, Asimismo usted podrá hacer valer sus
-              derechos de acceso, rectificación, cancelación u oposición
+              proveerle los servicios de localización del o la alumna, en
+              caso de extravío, aclaraciones, omisiones o accidente. De
+              requerirse hacer alguna transferencia de sus datos personales,
+              para otro fin, se solicitará de su consentimiento y se le hará
+              saber la finalidad del mismo, Asimismo usted podrá hacer valer
+              sus derechos de acceso, rectificación, cancelación u oposición
               (ARCO) ante la Unidad de Transparencia, ubicada en Calle M. Vila
               115. Primer piso, Colonia Centro de esta Ciudad, con correo
               electrónico uiap@pachuca.gob.mx; y número telefónico (771)
@@ -597,6 +627,26 @@ export default function SolicitudPage() {
               en la página del municipio www.pachuca.gob.mx, así como en la
               Unidad de Transparencia.
             </p>
+
+            <label className="mt-5 flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={aceptaAvisoPrivacidad}
+                onChange={(e) =>
+                  setAceptaAvisoPrivacidad(e.target.checked)
+                }
+                disabled={solicitudExistente}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-vino-oscuro focus:ring-[#D4C29C]"
+              />
+
+              <span className="text-sm leading-6 text-gray-800">
+                He leído y acepto el{" "}
+                <strong className="font-semibold text-vino-oscuro">
+                  Aviso de Privacidad
+                </strong>
+                .
+              </span>
+            </label>
           </div>
 
           {/* ERROR */}
@@ -607,18 +657,11 @@ export default function SolicitudPage() {
           )}
 
           {/* ACCIONES */}
-          <div className="mt-8 flex items-center justify-between border-t border-dorado-claro pt-6">
-            <a
-              href="/alumno"
-              className="text-sm text-gris-oscuro transition hover:text-vino-oscuro"
-            >
-              ← Regresar al panel
-            </a>
-
+          <div className="mt-8 flex justify-end border-t border-dorado-claro pt-6">
             {!solicitudExistente && (
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !aceptaAvisoPrivacidad}
                 className="rounded-lg bg-vino-oscuro px-6 py-3 font-medium text-white transition hover:bg-vino-claro disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Enviando..." : "Enviar solicitud"}
