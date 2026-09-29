@@ -1,3 +1,5 @@
+export const instant = false;
+
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -117,6 +119,7 @@ export default async function NecesidadesRHPage() {
         {/* ERROR */}
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+
             <p className="font-medium">
               No fue posible cargar las vacantes.
             </p>
@@ -124,6 +127,7 @@ export default async function NecesidadesRHPage() {
             <p className="mt-1">
               {error.message}
             </p>
+
           </div>
         )}
 
@@ -163,7 +167,7 @@ export default async function NecesidadesRHPage() {
 
                 <div
                   key={necesidad.id}
-                  className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+                  className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm transition hover:shadow-md"
                 >
 
                   {/* ENCABEZADO DE LA VACANTE */}
