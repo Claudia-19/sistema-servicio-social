@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import LogoutButton from "@/components/LogoutButton";
+import ActividadesAsignacion from "@/components/ActividadesAsignacion";
 
 export const instant = false;
 
@@ -32,24 +33,22 @@ export default async function AlumnoPage() {
   } = await supabase
     .from("solicitudes")
     .select(`
-      id,
-      estado,
-      matricula,
-      tipo_proceso,
-      nombre,
-      apellido_paterno,
-      apellido_materno,
-      domicilio,
-      institucion_educativa,
-      carrera,
-      semestre_cuatrimestre,
-      telefono,
-      correo,
-      fecha_inicio,
-      horario_propuesto,
-      informacion_adicional,
-      fecha_solicitud
-    `)
+  id,
+  estado,
+  matricula,
+  tipo_proceso,
+  nombre,
+  domicilio,
+  institucion_educativa,
+  carrera,
+  semestre_cuatrimestre,
+  telefono,
+  correo,
+  fecha_inicio,
+  horario_propuesto,
+  informacion_adicional,
+  fecha_solicitud
+`)
     .eq("usuario_id", user.id)
     .order("fecha_solicitud", { ascending: false })
     .limit(1)
@@ -125,8 +124,6 @@ export default async function AlumnoPage() {
   const nombreCompleto =
     [
       solicitud?.nombre,
-      solicitud?.apellido_paterno,
-      solicitud?.apellido_materno,
     ]
       .filter(Boolean)
       .join(" ") ||
@@ -317,183 +314,6 @@ export default async function AlumnoPage() {
           </div>
         </div>
 
-        {/* INFORMACIÓN COMPLETA DE LA SOLICITUD */}
-        {solicitud && (
-          <div className="mt-8 rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
-            <div className="mb-6">
-              <div className="mb-4 h-1 w-12 rounded-full bg-[#621132]" />
-
-              <h3 className="text-xl font-semibold text-[#621132]">
-                Información de mi solicitud
-              </h3>
-
-              <p className="mt-1 text-sm text-[#707272]">
-                Información registrada para su proceso.
-              </p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Nombre completo
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {nombreCompleto || "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Matrícula
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.matricula ||
-                    "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Tipo de trámite
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.tipo_proceso ||
-                    "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Institución educativa
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.institucion_educativa ||
-                    "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Carrera
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.carrera ||
-                    "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Semestre / Cuatrimestre
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.semestre_cuatrimestre ||
-                    "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Teléfono
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.telefono ||
-                    "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Correo electrónico
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.correo ||
-                    alumno?.email ||
-                    "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Fecha de solicitud
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {formatearFecha(
-                    solicitud.fecha_solicitud
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Fecha de inicio propuesta
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {formatearFecha(
-                    solicitud.fecha_inicio
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Horario
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.horario_propuesto ||
-                    "No disponible"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Área asignada
-                </p>
-
-                <p className="mt-1 text-sm font-medium text-[#621132]">
-                  {areaAsignada ||
-                    "Aún no asignada"}
-                </p>
-              </div>
-            </div>
-
-            {solicitud.domicilio && (
-              <div className="mt-5 border-t border-gray-100 pt-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Domicilio
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.domicilio}
-                </p>
-              </div>
-            )}
-
-            {solicitud.informacion_adicional && (
-              <div className="mt-5 border-t border-gray-100 pt-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Información adicional
-                </p>
-
-                <p className="mt-1 text-sm text-gray-800">
-                  {solicitud.informacion_adicional}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* INFORMACIÓN DE LA ASIGNACIÓN */}
         {asignacionAutorizada &&
           datosAsignacion && (
@@ -579,49 +399,11 @@ export default async function AlumnoPage() {
                 </div>
               </div>
 
-              <div className="mt-6 border-t border-gray-100 pt-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#707272]">
-                  Actividades a realizar
-                </p>
-
-                <div className="mt-3 space-y-3">
-                  {datosAsignacion.actividad_1 && (
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs font-semibold text-[#621132]">
-                        Actividad 1
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-800">
-                        {datosAsignacion.actividad_1}
-                      </p>
-                    </div>
-                  )}
-
-                  {datosAsignacion.actividad_2 && (
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs font-semibold text-[#621132]">
-                        Actividad 2
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-800">
-                        {datosAsignacion.actividad_2}
-                      </p>
-                    </div>
-                  )}
-
-                  {datosAsignacion.actividad_3 && (
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs font-semibold text-[#621132]">
-                        Actividad 3
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-800">
-                        {datosAsignacion.actividad_3}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ActividadesAsignacion
+                actividad1={datosAsignacion.actividad_1}
+                actividad2={datosAsignacion.actividad_2}
+                actividad3={datosAsignacion.actividad_3}
+              />
             </div>
           )}
 
@@ -682,6 +464,43 @@ export default async function AlumnoPage() {
             </div>
           </div>
         )}
+              {/* CONTROL DE HORAS */}
+      {asignacionAutorizada && (
+        <div className="mt-8 rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
+          <div className="mb-6">
+            <div className="mb-4 h-1 w-12 rounded-full bg-[#B38E5D]" />
+
+            <h3 className="text-xl font-semibold text-[#621132]">
+              Control de horas
+            </h3>
+
+            <p className="mt-1 text-sm text-[#707272]">
+              Consulte el avance de las horas registradas durante su
+              servicio social o prácticas profesionales.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-gray-50 p-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-semibold text-[#621132]">
+                Consulta de horas
+              </p>
+
+              <p className="mt-1 text-sm text-[#707272]">
+                Consulte las horas requeridas, realizadas, restantes y
+                el registro mensual.
+              </p>
+            </div>
+
+            <a
+              href="/alumno/horas"
+              className="inline-flex items-center justify-center rounded-lg bg-[#621132] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#9D2449]"
+            >
+              ⏱️ Consultar horas
+            </a>
+          </div>
+        </div>
+      )}
       </section>
     </main>
   );

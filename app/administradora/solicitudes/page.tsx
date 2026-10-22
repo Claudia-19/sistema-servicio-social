@@ -32,12 +32,7 @@ export default async function SolicitudesAdministradoraPage() {
     .select(`
       id,
       nombre,
-      institucion_educativa,
-      carrera,
-      semestre_cuatrimestre,
       tipo_proceso,
-      fecha_inicio,
-      horario_propuesto,
       estado,
       fecha_solicitud
     `)
@@ -134,40 +129,37 @@ export default async function SolicitudesAdministradoraPage() {
                   key={solicitud.id}
                   className="px-6 py-5 transition hover:bg-gray-50"
                 >
-                  <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                    {/* INFORMACIÓN */}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-[2fr_1.5fr_1fr_auto] md:items-center">
+                    {/* ESTUDIANTE */}
                     <div>
-                      <h4 className="font-semibold text-[#621132]">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Estudiante
+                      </p>
+
+                      <h4 className="mt-1 font-semibold text-[#621132]">
                         {solicitud.nombre}
                       </h4>
-
-                      <p className="mt-1 text-sm text-gray-600">
-                        {solicitud.carrera}
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-500">
-                        {solicitud.institucion_educativa}
-                      </p>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="rounded-full bg-[#D4C29C]/40 px-3 py-1 text-xs font-medium text-[#621132]">
-                          {solicitud.tipo_proceso}
-                        </span>
-
-                        <span className="rounded-full bg-[#707272]/10 px-3 py-1 text-xs text-[#707272]">
-                          {solicitud.semestre_cuatrimestre}
-                        </span>
-
-                        <span className="rounded-full bg-[#707272]/10 px-3 py-1 text-xs text-[#707272]">
-                          Inicio: {solicitud.fecha_inicio}
-                        </span>
-                      </div>
                     </div>
 
-                    {/* ESTADO Y BOTÓN */}
-                    <div className="flex flex-wrap items-center gap-4">
+                    {/* TIPO DE PRESENTACIÓN */}
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Tipo de presentación
+                      </p>
+
+                      <p className="mt-1 text-sm font-medium text-gray-700">
+                        {solicitud.tipo_proceso || "No especificado"}
+                      </p>
+                    </div>
+
+                    {/* ESTADO */}
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Estado
+                      </p>
+
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-medium ${
                           solicitud.estado === "Asignada"
                             ? "bg-green-100 text-green-700"
                             : solicitud.estado === "Aceptada"
@@ -179,11 +171,13 @@ export default async function SolicitudesAdministradoraPage() {
                       >
                         {solicitud.estado}
                       </span>
+                    </div>
 
-                      {/* AHORA APUNTA A ADMINISTRADORA */}
+                    {/* ACCIÓN */}
+                    <div className="md:text-right">
                       <Link
                         href={`/administradora/solicitudes/${solicitud.id}`}
-                        className="rounded-lg bg-[#621132] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#9D2449]"
+                        className="inline-flex rounded-lg bg-[#621132] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#9D2449]"
                       >
                         Ver solicitud
                       </Link>

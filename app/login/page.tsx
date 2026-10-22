@@ -9,31 +9,60 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [correo, setCorreo] = useState("");
+  const [identificador, setIdentificador] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    setLoading(true);
-    setError("");
+  try {
+    const valor = identificador.trim();
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: correo,
-      password: contrasena,
-    });
+    // Si parece un correo, conservar el acceso habitual del alumno.
+    if (valor.includes("@")) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: valor,
+        password: contrasena,
+      });
 
-    if (error) {
-      setError("Correo electrónico o contraseña incorrectos.");
-      setLoading(false);
-      return;
+      if (error) {
+        setError("Correo o contraseña incorrectos.");
+        return;
+      }
+    } else {
+      // El personal municipal entra mediante su nombre de usuario.
+      const response = await fetch("/api/auth/username-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: valor,
+          password: contrasena,
+        }),
+      });
+
+      const resultado = await response.json();
+
+      if (!response.ok || !resultado.ok) {
+        setError(resultado.error || "Usuario o contraseña incorrectos.");
+        return;
+      }
     }
 
     router.push("/dashboard");
     router.refresh();
-  };
+  } catch {
+    setError("No fue posible iniciar sesión. Inténtalo nuevamente.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -74,24 +103,26 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-6">
 
               {/* Correo */}
-              <div>
-                <label
-                  htmlFor="correo"
-                  className="mb-2 block text-sm font-semibold text-[#621132]"
-                >
-                  Correo electrónico
-                </label>
+<div>
+  <label
+    htmlFor="identificador"
+    className="mb-2 block text-sm font-semibold text-[#621132]"
+  >
+    Correo electrónico o nombre de usuario
+  </label>
 
-                <input
-                  id="correo"
-                  type="email"
-                  value={correo}
-                  onChange={(e) => setCorreo(e.target.value)}
-                  placeholder="correo@ejemplo.com"
-                  required
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3.5 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
-                />
-              </div>
+  <input
+    id="identificador"
+    type="text"
+    autoComplete="username"
+    value={identificador}
+    onChange={(e) => setIdentificador(e.target.value)}
+    placeholder="Correo electrónico o usuario"
+    required
+    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3.5 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
+  />
+</div>
+
 
               {/* Contraseña */}
               <div>

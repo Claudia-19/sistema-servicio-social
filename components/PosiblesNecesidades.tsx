@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -33,12 +32,16 @@ type PosiblesNecesidadesProps = {
   solicitudId: number;
   carreraAlumno: string;
   necesidades: Necesidad[];
+  nombreAlumno?: string;
+  tipoProceso?: string;
 };
 
 export default function PosiblesNecesidades({
   solicitudId,
   carreraAlumno,
   necesidades,
+  nombreAlumno = "",
+  tipoProceso = "",
 }: PosiblesNecesidadesProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -52,13 +55,16 @@ export default function PosiblesNecesidades({
   >({});
 
   const [seleccionada, setSeleccionada] = useState<number | null>(null);
+
   const [otraVacanteSeleccionada, setOtraVacanteSeleccionada] =
     useState(false);
+
   const [otraVacante, setOtraVacante] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [cargandoCompatibilidad, setCargandoCompatibilidad] =
     useState(true);
+
   const [error, setError] = useState("");
 
   // =========================================================
@@ -203,6 +209,76 @@ export default function PosiblesNecesidades({
 
     console.log("Propuesta creada:", propuestaId);
 
+    // =========================================================
+    // OBTENER INFORMACIÓN DEL ÁREA PROPUESTA
+    // =========================================================
+
+    let areaPropuesta = otraVacanteSeleccionada
+      ? otraVacante.trim()
+      : "Área no especificada";
+
+    if (seleccionada) {
+      const necesidadSeleccionada = necesidadesDisponibles.find(
+        (necesidad) => necesidad.id === seleccionada
+      );
+
+      if (necesidadSeleccionada) {
+        const area = Array.isArray(necesidadSeleccionada.areas)
+          ? necesidadSeleccionada.areas[0]?.nombre
+          : necesidadSeleccionada.areas?.nombre;
+
+        areaPropuesta = area || "Área no especificada";
+      }
+    }
+
+    // =========================================================
+    // AVISAR A ADMINISTRADORA
+    // =========================================================
+
+    try {
+      const respuestaCorreo = await fetch("/api/enviar-correo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tipo: "propuesta",
+          nombreAlumno,
+          carrera: carreraAlumno,
+          tipoProceso,
+          area: areaPropuesta,
+        }),
+      });
+
+      const resultadoCorreo = await respuestaCorreo.json();
+
+      if (!respuestaCorreo.ok) {
+        console.error(
+          "La propuesta se creó, pero no se pudo enviar el aviso:",
+          resultadoCorreo
+        );
+
+        setError(
+          "La propuesta fue creada correctamente, pero no se pudo enviar el aviso a la Administradora."
+        );
+
+        setLoading(false);
+        return;
+      }
+    } catch (errorCorreo) {
+      console.error(
+        "Error al enviar aviso a Administradora:",
+        errorCorreo
+      );
+
+      setError(
+        "La propuesta fue creada correctamente, pero no se pudo enviar el aviso a la Administradora."
+      );
+
+      setLoading(false);
+      return;
+    }
+
     router.push("/rh");
     router.refresh();
   };
@@ -329,7 +405,6 @@ export default function PosiblesNecesidades({
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-
       <div>
         <h3 className="text-lg font-semibold text-gray-900">
           Posibles necesidades
@@ -354,7 +429,6 @@ export default function PosiblesNecesidades({
       </div>
 
       <div className="mt-5 space-y-4">
-
         {necesidadesDisponibles.map((necesidad) => {
           const area = Array.isArray(necesidad.areas)
             ? necesidad.areas[0]?.nombre
@@ -385,9 +459,7 @@ export default function PosiblesNecesidades({
                   : "border-gray-200 hover:border-gray-400 hover:bg-gray-50"
               }`}
             >
-
               <div className="flex items-start justify-between gap-4">
-
                 <div>
                   <p className="text-sm text-gray-500">
                     Área de adscripción
@@ -401,11 +473,9 @@ export default function PosiblesNecesidades({
                 <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
                   {necesidad.vacantes_disponibles} vacante(s)
                 </span>
-
               </div>
 
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-
                 <div>
                   <p className="text-sm text-gray-500">
                     Carrera requerida
@@ -467,9 +537,7 @@ export default function PosiblesNecesidades({
                       : "No determinada"}
                   </p>
                 </div>
-
               </div>
-
             </button>
           );
         })}
@@ -488,7 +556,6 @@ export default function PosiblesNecesidades({
           }`}
         >
           <div className="flex items-center justify-between gap-4">
-
             <div>
               <p className="text-sm text-gray-500">
                 Vacante
@@ -506,15 +573,12 @@ export default function PosiblesNecesidades({
             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
               Personalizada
             </span>
-
           </div>
         </button>
-
       </div>
 
       {otraVacanteSeleccionada && (
         <div className="mt-5 rounded-xl border border-[#D4C29C] bg-[#D4C29C]/10 p-5">
-
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Especifique la vacante o área *
           </label>
@@ -529,7 +593,6 @@ export default function PosiblesNecesidades({
             placeholder="Ej. Departamento de Profesionalización"
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#9D2449] focus:ring-2 focus:ring-[#9D2449]/20"
           />
-
         </div>
       )}
 
@@ -540,7 +603,6 @@ export default function PosiblesNecesidades({
       )}
 
       <div className="mt-6 flex justify-end">
-
         <button
           type="button"
           onClick={crearPropuesta}
@@ -555,9 +617,7 @@ export default function PosiblesNecesidades({
             ? "Creando propuesta..."
             : "Proponer esta necesidad"}
         </button>
-
       </div>
-
     </div>
   );
 }

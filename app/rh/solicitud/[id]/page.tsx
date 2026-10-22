@@ -769,10 +769,12 @@ export default async function RevisarSolicitudPage({
 
           {solicitud.estado === "Aceptada" && (
             <PosiblesNecesidades
-              solicitudId={solicitud.id}
-              carreraAlumno={solicitud.carrera}
-              necesidades={necesidades ?? []}
-            />
+  solicitudId={solicitud.id}
+  carreraAlumno={solicitud.carrera}
+  necesidades={necesidades ?? []}
+  nombreAlumno={solicitud.nombre}
+  tipoProceso={solicitud.tipo_proceso}
+/>
           )}
 
         </div>

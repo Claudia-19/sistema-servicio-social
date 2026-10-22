@@ -55,23 +55,36 @@ export default async function ImprimirSolicitudRHPage({
   const { data: solicitud, error } = await supabase
     .from("solicitudes")
     .select(`
-      id,
-      nombre,
-      domicilio,
-      institucion_educativa,
-      carrera,
-      semestre_cuatrimestre,
-      matricula,
-      telefono,
-      correo,
-      tipo_proceso,
-      fecha_solicitud,
-      fecha_inicio,
-      horario_propuesto,
-      informacion_adicional,
-      estado,
-      fotografia_url
-    `)
+  id,
+  nombre,
+  domicilio,
+  institucion_educativa,
+  carrera,
+  semestre_cuatrimestre,
+  matricula,
+  telefono,
+  telefono_casa,
+  correo,
+  tipo_proceso,
+  fecha_solicitud,
+  fecha_inicio,
+  horario_propuesto,
+  informacion_adicional,
+  nombre_papa,
+  telefono_papa,
+  nombre_mama,
+  telefono_mama,
+  nombre_tutor,
+  telefono_tutor,
+  emergencia_1_nombre,
+  emergencia_1_parentesco,
+  emergencia_1_telefono,
+  emergencia_2_nombre,
+  emergencia_2_parentesco,
+  emergencia_2_telefono,
+  estado,
+  fotografia_url
+`)
     .eq("id", solicitudId)
     .maybeSingle();
 
@@ -499,59 +512,146 @@ export default async function ImprimirSolicitudRHPage({
         </table>
 
         {/* ======================================================
-            PERSONAS DE EMERGENCIA
-        ======================================================= */}
-        <table className="w-full border-collapse border border-black">
-          <thead>
-            <tr>
-              <th
-                colSpan={2}
-                className="border border-black bg-gray-200 py-1 text-center text-[11px] font-bold"
-              >
-                Personas a quien avisarles en caso de un accidente
-              </th>
-            </tr>
-          </thead>
+    REFERENCIAS PERSONALES
+======================================================= */}
+<table className="mt-2 w-full border-collapse border border-black">
+  <thead>
+    <tr>
+      <th
+        colSpan={2}
+        className="border border-black bg-gray-200 py-1 text-center text-[11px] font-bold"
+      >
+        Referencias Personales
+      </th>
+    </tr>
+  </thead>
 
-          <tbody>
-            <tr>
-              <td className="w-[31%] border border-black px-2 py-[3px] font-bold">
-                Nombre y parentesco:
-              </td>
+  <tbody>
+    <tr>
+      <td className="w-[31%] border border-black px-2 py-[3px] font-bold">
+        Nombre del Papá
+      </td>
 
-              <td className="border border-black">
-              </td>
-            </tr>
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.nombre_papa || ""}
+      </td>
+    </tr>
 
-            <tr>
-              <td className="border border-black px-2 py-[3px] font-bold">
-                Teléfono donde se puede localizar:
-              </td>
+    <tr>
+      <td className="border border-black px-2 py-[3px] font-bold">
+        Teléfono donde se puede localizar:
+      </td>
 
-              <td className="border border-black">
-              </td>
-            </tr>
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.telefono_papa || ""}
+      </td>
+    </tr>
 
-            <tr>
-              <td className="border border-black px-2 py-[3px] font-bold">
-                Nombre y parentesco:
-              </td>
+    <tr>
+      <td className="border border-black px-2 py-[3px] font-bold">
+        Nombre de la Mamá
+      </td>
 
-              <td className="border border-black">
-              </td>
-            </tr>
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.nombre_mama || ""}
+      </td>
+    </tr>
 
-            <tr>
-              <td className="border border-black px-2 py-[3px] font-bold">
-                Teléfono donde se puede localizar:
-              </td>
+    <tr>
+      <td className="border border-black px-2 py-[3px] font-bold">
+        Teléfono donde se puede localizar:
+      </td>
 
-              <td className="border border-black">
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.telefono_mama || ""}
+      </td>
+    </tr>
 
+    <tr>
+      <td className="border border-black px-2 py-[3px] font-bold">
+        Nombre del tutor en su caso:
+      </td>
+
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.nombre_tutor || ""}
+      </td>
+    </tr>
+
+    <tr>
+      <td className="border border-black px-2 py-[3px] font-bold">
+        Teléfono donde se puede localizar:
+      </td>
+
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.telefono_tutor || ""}
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+{/* ======================================================
+    PERSONAS DE EMERGENCIA
+======================================================= */}
+<table className="w-full border-collapse border border-black">
+  <thead>
+    <tr>
+      <th
+        colSpan={2}
+        className="border border-black bg-gray-200 py-1 text-center text-[11px] font-bold"
+      >
+        Personas a quien avisarles en caso de un accidente
+      </th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="w-[31%] border border-black px-2 py-[3px] font-bold">
+        Nombre y parentesco:
+      </td>
+
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.emergencia_1_nombre &&
+        solicitud.emergencia_1_parentesco
+          ? `${solicitud.emergencia_1_nombre} — ${solicitud.emergencia_1_parentesco}`
+          : solicitud.emergencia_1_nombre || ""}
+      </td>
+    </tr>
+
+    <tr>
+      <td className="border border-black px-2 py-[3px] font-bold">
+        Teléfono donde se puede localizar:
+      </td>
+
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.emergencia_1_telefono || ""}
+      </td>
+    </tr>
+
+    <tr>
+      <td className="border border-black px-2 py-[3px] font-bold">
+        Nombre y parentesco:
+      </td>
+
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.emergencia_2_nombre &&
+        solicitud.emergencia_2_parentesco
+          ? `${solicitud.emergencia_2_nombre} — ${solicitud.emergencia_2_parentesco}`
+          : solicitud.emergencia_2_nombre || ""}
+      </td>
+    </tr>
+
+    <tr>
+      <td className="border border-black px-2 py-[3px] font-bold">
+        Teléfono donde se puede localizar:
+      </td>
+
+      <td className="border border-black px-2 py-[3px]">
+        {solicitud.emergencia_2_telefono || ""}
+      </td>
+    </tr>
+  </tbody>
+</table>
         {/* ======================================================
             RATIFICACIÓN
         ======================================================= */}
