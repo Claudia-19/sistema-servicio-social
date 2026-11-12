@@ -186,55 +186,73 @@ export default function FiltrosSolicitudes({
     setEstado("");
   };
 
-  const exportarExcel = async () => {
-    if (solicitudesFiltradas.length === 0) {
-      alert("No hay resultados para exportar.");
-      return;
-    }
 
-    try {
-      const XLSX = await import("xlsx");
+const exportarExcel = async () => {
+  if (solicitudesFiltradas.length === 0) {
+    alert("No hay resultados para exportar.");
+    return;
+  }
 
-      const datos = solicitudesFiltradas.map((solicitud) => ({
-        "Nombre del estudiante": solicitud.nombre,
-        Matrícula: solicitud.matricula ?? "",
-        "Institución educativa":
-          solicitud.institucion_educativa ?? "",
-        Carrera: solicitud.carrera ?? "",
-        "Semestre / Cuatrimestre":
-          solicitud.semestre_cuatrimestre ?? "",
-        "Tipo de proceso": solicitud.tipo_proceso ?? "",
-        "Fecha de inicio": solicitud.fecha_inicio ?? "",
-        Secretaría: solicitud.secretaria ?? "",
-        "Área asignada": solicitud.area_asignada ?? "",
-        Estado: solicitud.estado ?? "",
-        "Fecha de solicitud":
-          solicitud.fecha_solicitud ?? "",
-      }));
+  try {
+    const ExcelJS = await import("exceljs");
 
-      const hoja = XLSX.utils.json_to_sheet(datos);
-      const libro = XLSX.utils.book_new();
+    const datos = solicitudesFiltradas.map((solicitud) => ({
+      "Nombre del estudiante": solicitud.nombre,
+      Matrícula: solicitud.matricula ?? "",
+      "Institución educativa":
+        solicitud.institucion_educativa ?? "",
+      Carrera: solicitud.carrera ?? "",
+      "Semestre / Cuatrimestre":
+        solicitud.semestre_cuatrimestre ?? "",
+      "Tipo de proceso": solicitud.tipo_proceso ?? "",
+      "Fecha de inicio": solicitud.fecha_inicio ?? "",
+      Secretaría: solicitud.secretaria ?? "",
+      "Área asignada": solicitud.area_asignada ?? "",
+      Estado: solicitud.estado ?? "",
+      "Fecha de solicitud":
+        solicitud.fecha_solicitud ?? "",
+    }));
 
-      XLSX.utils.book_append_sheet(
-        libro,
-        hoja,
-        "Solicitudes"
-      );
+    const libro = new ExcelJS.Workbook();
+    const hoja = libro.addWorksheet("Solicitudes");
 
-      XLSX.writeFile(
-        libro,
-        `solicitudes_${new Date()
-          .toISOString()
-          .slice(0, 10)}.xlsx`
-      );
-    } catch (error) {
-      console.error("Error al exportar Excel:", error);
+    const encabezados = Object.keys(datos[0]);
+    hoja.addRow(encabezados);
 
-      alert(
-        "No fue posible exportar el archivo de Excel."
-      );
-    }
-  };
+    datos.forEach((registro) => {
+      hoja.addRow(Object.values(registro));
+    });
+
+    hoja.getRow(1).font = { bold: true };
+
+    hoja.columns.forEach((columna) => {
+      columna.width = 24;
+    });
+
+    const buffer = await libro.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement("a");
+
+    enlace.href = url;
+    enlace.download = `solicitudes_${new Date()
+      .toISOString()
+      .slice(0, 10)}.xlsx`;
+
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error al exportar Excel:", error);
+    alert("No fue posible exportar el archivo de Excel.");
+  }
+};
+
 
   const hayFiltros =
     busqueda ||

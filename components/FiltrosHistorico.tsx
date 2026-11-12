@@ -268,129 +268,84 @@ export default function FiltrosHistorico({
     setEstadoPrestacion("");
   };
 
-  // =========================================================
-  // EXPORTAR EXCEL
-  // =========================================================
+const exportarExcel = async () => {
+  if (registrosFiltrados.length === 0) {
+    alert("No hay resultados para exportar.");
+    return;
+  }
 
-  const exportarExcel = async () => {
-    if (registrosFiltrados.length === 0) {
-      alert(
-        "No hay resultados para exportar."
-      );
-      return;
-    }
+  try {
+    const ExcelJS = await import("exceljs");
 
-    try {
-      const XLSX = await import("xlsx");
+    const datos = registrosFiltrados.map((registro) => ({
+      Año: registro.anio,
+      Mes: registro.mes ? nombresMeses[registro.mes] : "",
+      "Nombre del estudiante": registro.nombre_estudiante,
+      "Institución educativa": registro.institucion_educativa ?? "",
+      Carrera: registro.carrera ?? "",
+      Secretaría: registro.secretaria ?? "",
+      "Área asignada": registro.area_asignada ?? "",
+      "Jefe inmediato": registro.jefe_inmediato ?? "",
+      "Tipo de proceso": registro.tipo_proceso ?? "",
+      "Estado de la prestación": registro.estado_prestacion ?? "",
+      "Fecha de inicio": registro.fecha_inicio
+        ? formatearFecha(registro.fecha_inicio)
+        : "",
+      "Fecha de activación": registro.fecha_activacion
+        ? formatearFecha(registro.fecha_activacion)
+        : "",
+      "Fecha de término": registro.fecha_fin
+        ? formatearFecha(registro.fecha_fin)
+        : "",
+      "Fecha de baja": registro.fecha_baja
+        ? formatearFecha(registro.fecha_baja)
+        : "",
+      "Horas requeridas": registro.horas_requeridas ?? "",
+      "Horas acumuladas":
+        registro.horas_acumuladas ?? registro.total_horas ?? "",
+      "Motivo de baja": registro.motivo_baja ?? "",
+      "Folio de acta de baja": registro.folio_acta_baja ?? "",
+    }));
 
-      const datos = registrosFiltrados.map(
-        (registro) => ({
-          Año: registro.anio,
+    const libro = new ExcelJS.Workbook();
+    const hoja = libro.addWorksheet("Consulta");
 
-          Mes: registro.mes
-            ? nombresMeses[registro.mes]
-            : "",
+    hoja.addRow(Object.keys(datos[0]));
 
-          "Nombre del estudiante":
-            registro.nombre_estudiante,
+    datos.forEach((registro) => {
+      hoja.addRow(Object.values(registro));
+    });
 
-          "Institución educativa":
-            registro.institucion_educativa ??
-            "",
+    hoja.getRow(1).font = { bold: true };
 
-          Carrera:
-            registro.carrera ?? "",
+    hoja.columns.forEach((columna) => {
+      columna.width = 22;
+    });
 
-          Secretaría:
-            registro.secretaria ?? "",
+    const buffer = await libro.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
 
-          "Área asignada":
-            registro.area_asignada ?? "",
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement("a");
 
-          "Jefe inmediato":
-            registro.jefe_inmediato ?? "",
+    enlace.href = url;
+    enlace.download = `consulta_prestadores_${new Date()
+      .toISOString()
+      .slice(0, 10)}.xlsx`;
 
-          "Tipo de proceso":
-            registro.tipo_proceso ?? "",
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
 
-          "Estado de la prestación":
-            registro.estado_prestacion ??
-            "",
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error al exportar Excel:", error);
+    alert("No fue posible exportar el archivo de Excel.");
+  }
+};
 
-          "Fecha de inicio":
-            registro.fecha_inicio
-              ? formatearFecha(
-                  registro.fecha_inicio
-                )
-              : "",
-
-          "Fecha de activación":
-            registro.fecha_activacion
-              ? formatearFecha(
-                  registro.fecha_activacion
-                )
-              : "",
-
-          "Fecha de término":
-            registro.fecha_fin
-              ? formatearFecha(
-                  registro.fecha_fin
-                )
-              : "",
-
-          "Fecha de baja":
-            registro.fecha_baja
-              ? formatearFecha(
-                  registro.fecha_baja
-                )
-              : "",
-
-          "Horas requeridas":
-            registro.horas_requeridas ??
-            "",
-
-          "Horas acumuladas":
-            registro.horas_acumuladas ??
-            registro.total_horas ??
-            "",
-
-          "Motivo de baja":
-            registro.motivo_baja ?? "",
-
-          "Folio de acta de baja":
-            registro.folio_acta_baja ?? "",
-        })
-      );
-
-      const hoja =
-        XLSX.utils.json_to_sheet(datos);
-
-      const libro =
-        XLSX.utils.book_new();
-
-      XLSX.utils.book_append_sheet(
-        libro,
-        hoja,
-        "Consulta"
-      );
-
-      XLSX.writeFile(
-        libro,
-        `consulta_prestadores_${new Date()
-          .toISOString()
-          .slice(0, 10)}.xlsx`
-      );
-    } catch (error) {
-      console.error(
-        "Error al exportar Excel:",
-        error
-      );
-
-      alert(
-        "No fue posible exportar el archivo de Excel."
-      );
-    }
-  };
 
   // =========================================================
   // ¿HAY FILTROS?
