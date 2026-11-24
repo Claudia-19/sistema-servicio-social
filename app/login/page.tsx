@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import HeaderInstitucional from "@/components/HeaderInstitucional";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -67,40 +68,30 @@ const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Encabezado institucional */}
-      <header className="border-b border-[#621132] bg-[#621132]">
-        <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-5">
-          <img
-            src="/logo-pachuca.png"
-            alt="Pachuca Capital de la Transformación"
-            className="h-24 w-auto object-contain"
-          />
-        </div>
-      </header>
+      <HeaderInstitucional variante="centro" />
 
       {/* Contenido */}
-      <section className="flex min-h-[calc(100vh-130px)] items-center justify-center px-6 py-14">
-        <div className="w-full max-w-xl">
+      <section className="flex items-start justify-center px-4 py-8 sm:px-6">
+        <div className="w-full max-w-md">
 
           {/* Título */}
-          <div className="mb-8 text-center">
-            <p className="mb-3 text-base font-semibold uppercase tracking-wider text-[#9D2449]">
+          <div className="mb-5 text-center">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[#9D2449]">
               Presidencia Municipal
             </p>
 
-            <h1 className="text-4xl font-bold leading-tight text-[#621132] sm:text-5xl">
-              Sistema Integral de Seguimiento de
-              <br />
-              Formación Profesional
+            <h1 className="text-2xl font-bold leading-tight text-[#621132] sm:text-3xl">
+              Sistema Integral de Seguimiento de Formación Profesional
             </h1>
 
-            <p className="mt-4 text-base text-[#707272]">
+            <p className="mt-2 text-sm text-[#707272]">
               Inicia sesión para continuar
             </p>
           </div>
 
           {/* Formulario */}
-          <div className="rounded-xl border border-[#D4C29C] bg-white p-8 shadow-sm sm:p-10">
-            <form onSubmit={handleLogin} className="space-y-6">
+          <div className="rounded-xl border border-[#D4C29C] bg-white p-5 shadow-sm sm:p-6">
+            <form onSubmit={handleLogin} className="space-y-4">
 
               {/* Correo */}
 <div>
@@ -119,7 +110,7 @@ const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     onChange={(e) => setIdentificador(e.target.value)}
     placeholder="Correo electrónico o usuario"
     required
-    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3.5 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
+    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
   />
 </div>
 
@@ -140,7 +131,7 @@ const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
                   onChange={(e) => setContrasena(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3.5 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#9D2449] focus:ring-2 focus:ring-[#D4C29C]"
                 />
 
                 {/* Recuperación de contraseña */}
@@ -165,7 +156,7 @@ const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-[#621132] px-5 py-3.5 text-base font-semibold text-white transition hover:bg-[#9D2449] disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-lg bg-[#621132] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#9D2449] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Iniciando sesión..." : "Iniciar sesión"}
               </button>

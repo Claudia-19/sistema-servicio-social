@@ -2,6 +2,7 @@ export const instant = false;
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import HeaderInstitucional from "@/components/HeaderInstitucional";
 
 export default async function NecesidadesAdministradoraPage() {
   const supabase = await createClient();
@@ -55,27 +56,12 @@ export default async function NecesidadesAdministradoraPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* ENCABEZADO INSTITUCIONAL */}
-      <header className="border-b border-[#621132] bg-[#621132]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-          <div className="flex items-center">
-            <img
-              src="/logo-pachuca.png"
-              alt="Pachuca Capital de la Transformación"
-              className="h-16 w-auto object-contain"
-            />
-          </div>
-
-          <div className="text-right">
-            <p className="text-sm font-medium text-white">
-              {usuario.nombre} {usuario.apellido_paterno}
-            </p>
-
-            <p className="text-xs text-white/80">
-              Administradora
-            </p>
-          </div>
-        </div>
-      </header>
+      <HeaderInstitucional
+        variante="identidad"
+        ancho="panel"
+        nombreUsuario={`${usuario.nombre} ${usuario.apellido_paterno}`}
+        rol="Administradora"
+      />
 
       {/* CONTENIDO */}
       <section className="mx-auto max-w-7xl px-6 py-10">

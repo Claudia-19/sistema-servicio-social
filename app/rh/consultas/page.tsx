@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import HeaderInstitucional from "@/components/HeaderInstitucional";
 import FiltrosHistorico from "@/components/FiltrosHistorico";
 
 type RegistroConsulta = {
@@ -421,32 +422,13 @@ export default async function ConsultasRHPage() {
           ENCABEZADO
       ====================================================== */}
 
-      <header className="border-b border-[#621132] bg-[#621132]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-          <div className="flex items-center">
-            <img
-              src="/logo-pachuca.png"
-              alt="Pachuca Capital de la Transformación"
-              className="h-16 w-auto object-contain"
-            />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-white">
-                {usuario.nombre}{" "}
-                {usuario.apellido_paterno}
-              </p>
-
-              <p className="text-xs text-white/80">
-                DIRECCIÓN GENERAL DE RECURSOS HUMANOS
-              </p>
-            </div>
-
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+      <HeaderInstitucional
+        variante="sesion"
+        ancho="panel"
+        nombreUsuario={`${usuario.nombre} ${usuario.apellido_paterno}`}
+        rol="Dirección General de Recursos Humanos"
+        logoutButton={<LogoutButton />}
+      />
 
       {/* =====================================================
           CONTENIDO

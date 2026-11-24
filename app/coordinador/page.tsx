@@ -60,6 +60,8 @@ export default async function CoordinadorPage() {
     <main className="min-h-screen bg-gray-50">
       {/* Encabezado institucional */}
       <HeaderInstitucional
+        variante="sesion"
+        ancho="panel"
         nombreUsuario={`${usuario.nombre} ${usuario.apellido_paterno}`}
         rol="Coordinador"
         logoutButton={<LogoutButton />}

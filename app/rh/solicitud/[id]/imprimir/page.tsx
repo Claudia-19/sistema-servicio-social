@@ -1,6 +1,70 @@
+import { Fragment } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BotonImprimir from "@/components/BotonImprimir";
+import { contactosEmergencia, leerRedApoyo } from "@/lib/solicitud";
+
+function claveContacto(nombre: string) {
+  return nombre
+    .trim()
+    .toLocaleLowerCase("es")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function contactosParaImpresion(solicitud: {
+  nombre_papa?: string | null;
+  telefono_papa?: string | null;
+  nombre_mama?: string | null;
+  telefono_mama?: string | null;
+  nombre_tutor?: string | null;
+  telefono_tutor?: string | null;
+  emergencia_1_nombre?: string | null;
+  emergencia_1_parentesco?: string | null;
+  emergencia_1_telefono?: string | null;
+  emergencia_2_nombre?: string | null;
+  emergencia_2_parentesco?: string | null;
+  emergencia_2_telefono?: string | null;
+  papa_contacto_emergencia?: boolean | null;
+  mama_contacto_emergencia?: boolean | null;
+  tutor_contacto_emergencia?: boolean | null;
+  contactos_adicionales?: unknown;
+}) {
+  const historicos = [
+    {
+      nombre: solicitud.emergencia_1_nombre?.trim() ?? "",
+      parentesco: solicitud.emergencia_1_parentesco?.trim() ?? "",
+      telefono: solicitud.emergencia_1_telefono?.trim() ?? "",
+    },
+    {
+      nombre: solicitud.emergencia_2_nombre?.trim() ?? "",
+      parentesco: solicitud.emergencia_2_parentesco?.trim() ?? "",
+      telefono: solicitud.emergencia_2_telefono?.trim() ?? "",
+    },
+  ].filter((contacto) => contacto.nombre || contacto.telefono);
+
+  const vistos = new Set(
+    historicos.map((contacto) => claveContacto(contacto.nombre)),
+  );
+  const adicionales = contactosEmergencia(leerRedApoyo(solicitud)).filter(
+    (contacto) => {
+      if (!contacto.nombre && !contacto.telefono) return false;
+      const clave = claveContacto(contacto.nombre);
+      if (!clave || vistos.has(clave)) return false;
+      vistos.add(clave);
+      return true;
+    },
+  );
+
+  const contactos = [...historicos, ...adicionales];
+  return contactos.length > 0
+    ? contactos
+    : [
+        { nombre: "", parentesco: "", telefono: "" },
+        { nombre: "", parentesco: "", telefono: "" },
+      ];
+}
 
 export const instant = false;
 
@@ -52,9 +116,50 @@ export default async function ImprimirSolicitudRHPage({
   // ============================================================
   // OBTENER LA SOLICITUD ESPECÍFICA
   // ============================================================
-  const { data: solicitud, error } = await supabase
+  let { data: solicitud, error } = await supabase
     .from("solicitudes")
     .select(`
+  id,
+  nombre,
+  domicilio,
+  institucion_educativa,
+  carrera,
+  semestre_cuatrimestre,
+  matricula,
+  telefono,
+  telefono_casa,
+  correo,
+  tipo_proceso,
+  fecha_solicitud,
+  fecha_inicio,
+  horario_propuesto,
+  informacion_adicional,
+  nombre_papa,
+  telefono_papa,
+  nombre_mama,
+  telefono_mama,
+  nombre_tutor,
+  telefono_tutor,
+  emergencia_1_nombre,
+  emergencia_1_parentesco,
+  emergencia_1_telefono,
+  emergencia_2_nombre,
+  emergencia_2_parentesco,
+  emergencia_2_telefono,
+  papa_contacto_emergencia,
+  mama_contacto_emergencia,
+  tutor_contacto_emergencia,
+  contactos_adicionales,
+  estado,
+  fotografia_url
+`)
+    .eq("id", solicitudId)
+    .maybeSingle();
+
+  if (error) {
+    const reintento = await supabase
+      .from("solicitudes")
+      .select(`
   id,
   nombre,
   domicilio,
@@ -85,8 +190,19 @@ export default async function ImprimirSolicitudRHPage({
   estado,
   fotografia_url
 `)
-    .eq("id", solicitudId)
-    .maybeSingle();
+      .eq("id", solicitudId)
+      .maybeSingle();
+    solicitud = reintento.data
+      ? {
+          ...reintento.data,
+          papa_contacto_emergencia: null,
+          mama_contacto_emergencia: null,
+          tutor_contacto_emergencia: null,
+          contactos_adicionales: null,
+        }
+      : null;
+    error = reintento.error;
+  }
 
   if (error || !solicitud) {
     return (
@@ -605,51 +721,31 @@ export default async function ImprimirSolicitudRHPage({
   </thead>
 
   <tbody>
-    <tr>
-      <td className="w-[31%] border border-black px-2 py-[3px] font-bold">
-        Nombre y parentesco:
-      </td>
+    {contactosParaImpresion(solicitud).map((contacto, indice) => (
+      <Fragment key={`${contacto.nombre}-${contacto.telefono}-${indice}`}>
+        <tr>
+          <td className="w-[31%] border border-black px-2 py-[3px] font-bold">
+            Nombre y parentesco:
+          </td>
 
-      <td className="border border-black px-2 py-[3px]">
-        {solicitud.emergencia_1_nombre &&
-        solicitud.emergencia_1_parentesco
-          ? `${solicitud.emergencia_1_nombre} — ${solicitud.emergencia_1_parentesco}`
-          : solicitud.emergencia_1_nombre || ""}
-      </td>
-    </tr>
+          <td className="border border-black px-2 py-[3px]">
+            {contacto.nombre && contacto.parentesco
+              ? `${contacto.nombre} — ${contacto.parentesco}`
+              : contacto.nombre}
+          </td>
+        </tr>
 
-    <tr>
-      <td className="border border-black px-2 py-[3px] font-bold">
-        Teléfono donde se puede localizar:
-      </td>
+        <tr>
+          <td className="border border-black px-2 py-[3px] font-bold">
+            Teléfono donde se puede localizar:
+          </td>
 
-      <td className="border border-black px-2 py-[3px]">
-        {solicitud.emergencia_1_telefono || ""}
-      </td>
-    </tr>
-
-    <tr>
-      <td className="border border-black px-2 py-[3px] font-bold">
-        Nombre y parentesco:
-      </td>
-
-      <td className="border border-black px-2 py-[3px]">
-        {solicitud.emergencia_2_nombre &&
-        solicitud.emergencia_2_parentesco
-          ? `${solicitud.emergencia_2_nombre} — ${solicitud.emergencia_2_parentesco}`
-          : solicitud.emergencia_2_nombre || ""}
-      </td>
-    </tr>
-
-    <tr>
-      <td className="border border-black px-2 py-[3px] font-bold">
-        Teléfono donde se puede localizar:
-      </td>
-
-      <td className="border border-black px-2 py-[3px]">
-        {solicitud.emergencia_2_telefono || ""}
-      </td>
-    </tr>
+          <td className="border border-black px-2 py-[3px]">
+            {contacto.telefono}
+          </td>
+        </tr>
+      </Fragment>
+    ))}
   </tbody>
 </table>
         {/* ======================================================

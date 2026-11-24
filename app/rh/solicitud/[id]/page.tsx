@@ -4,6 +4,7 @@ import Link from "next/link";
 import DecisionSolicitud from "@/components/DecisionSolicitud";
 import PosiblesNecesidades from "@/components/PosiblesNecesidades";
 import ActivarAlumno from "@/app/rh/alumnos-activos/[id]/acciones/ActivarAlumno";
+import HeaderInstitucional from "@/components/HeaderInstitucional";
 
 export const instant = false;
 
@@ -228,29 +229,12 @@ export default async function RevisarSolicitudPage({
           ENCABEZADO
       ======================================================= */}
 
-      <header className="border-b border-[#621132] bg-[#621132]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-
-          <div className="flex items-center">
-            <img
-              src="/logo-pachuca.png"
-              alt="Pachuca Capital de la Transformación"
-              className="h-16 w-auto object-contain"
-            />
-          </div>
-
-          <div className="text-right">
-            <p className="text-sm font-medium text-white">
-              Dirección General de Recursos Humanos
-            </p>
-
-            <p className="text-xs text-white/80">
-              Revisión de solicitud
-            </p>
-          </div>
-
-        </div>
-      </header>
+      <HeaderInstitucional
+        variante="identidad"
+        ancho="panel"
+        nombreUsuario="Dirección General de Recursos Humanos"
+        rol="Revisión de solicitud"
+      />
 
       {/* ======================================================
           CONTENIDO

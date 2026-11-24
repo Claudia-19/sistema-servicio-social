@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import HeaderInstitucional from "@/components/HeaderInstitucional";
 type Area = {
   id: number;
   nombre: string;
@@ -137,20 +138,15 @@ export default function NuevaNecesidadPage() {
     };
     cargarArea();
   }, [supabase]);
+  const [personalDireccion, setPersonalDireccion] = useState<Personal[]>([]);
   const [loadingResponsable, setLoadingResponsable] = useState(false);
+  const consultaPersonal = useRef(0);
   const [errorResponsable, setErrorResponsable] = useState("");
 
-  const obtenerPrioridadPuesto = (puesto: string | null) => {
-    const cargo = (puesto ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-    if (cargo.includes("DIRECTOR GENERAL")) return 1;
-    if (cargo.includes("DIRECTOR DE AREA") || cargo === "DIRECTOR") return 2;
-    if (cargo.includes("TITULAR")) return 3;
-    if (cargo.includes("SUBDIRECTOR")) return 4;
-    if (cargo.includes("JEFE DE DEPARTAMENTO")) return 5;
-    if (cargo.includes("JEFE DE AREA") || cargo === "JEFE") return 6;
-    if (cargo.includes("COORDINADOR")) return 7;
-    return 8;
-  };
+  const nombreCompleto = (persona: Personal) =>
+    `${persona.nombre ?? ""} ${persona.apellido_paterno ?? ""} ${persona.apellido_materno ?? ""}`
+      .replace(/\s+/g, " ")
+      .trim();
 
   const handleChange = async (
     e: React.ChangeEvent<
@@ -159,57 +155,57 @@ export default function NuevaNecesidadPage() {
   ) => {
     const { name, value } = e.target;
 
+    if (name === "jefe_inmediato_id") {
+      const persona = personalDireccion.find((item) => String(item.id) === value);
+      setFormulario((prev) => ({
+        ...prev,
+        jefe_inmediato_id: persona ? String(persona.id) : "",
+        jefe_inmediato: persona ? nombreCompleto(persona) : "",
+      }));
+      return;
+    }
+
     setFormulario((prev) => ({ ...prev, [name]: value }));
 
     if (name !== "adscripcion_id") return;
 
+    const consulta = ++consultaPersonal.current;
     setFormulario((prev) => ({
       ...prev,
       adscripcion_id: value,
       jefe_inmediato: "",
       jefe_inmediato_id: "",
     }));
+    setPersonalDireccion([]);
     setErrorResponsable("");
 
-    if (!value) return;
+    if (!value || !area) return;
 
     setLoadingResponsable(true);
     const { data: personalData, error: personalError } = await supabase
       .from("personal")
-      .select("id, nombre, apellido_paterno, apellido_materno, puesto, adscripcion_id")
+      .select("id, nombre, apellido_paterno, apellido_materno, puesto, adscripcion_id, area_id")
       .eq("adscripcion_id", Number(value))
+      .eq("area_id", area.id)
       .eq("activo", true);
 
+    if (consulta !== consultaPersonal.current) return;
+
     if (personalError) {
-      console.error("ERROR AL CARGAR RESPONSABLE:", personalError);
-      setErrorResponsable("No fue posible cargar el responsable de esta adscripción.");
+      console.error("ERROR AL CARGAR PERSONAL:", personalError);
+      setErrorResponsable("No fue posible cargar el personal de esta dirección.");
       setLoadingResponsable(false);
       return;
     }
 
-    const personal = (personalData ?? []) as Personal[];
+    const personal = ((personalData ?? []) as Personal[])
+      .filter((persona) => persona.adscripcion_id === Number(value))
+      .sort((a, b) => nombreCompleto(a).localeCompare(nombreCompleto(b), "es"));
+
+    setPersonalDireccion(personal);
     if (personal.length === 0) {
-      setErrorResponsable("No hay personal activo registrado para esta adscripción.");
-      setLoadingResponsable(false);
-      return;
+      setErrorResponsable("No hay personal activo registrado en esta dirección.");
     }
-
-    personal.sort((a, b) => {
-      const prioridad = obtenerPrioridadPuesto(a.puesto) - obtenerPrioridadPuesto(b.puesto);
-      if (prioridad !== 0) return prioridad;
-      const nombreA = `${a.nombre ?? ""} ${a.apellido_paterno ?? ""} ${a.apellido_materno ?? ""}`.trim();
-      const nombreB = `${b.nombre ?? ""} ${b.apellido_paterno ?? ""} ${b.apellido_materno ?? ""}`.trim();
-      return nombreA.localeCompare(nombreB, "es");
-    });
-
-    const responsable = personal[0];
-    const nombreResponsable = `${responsable.nombre ?? ""} ${responsable.apellido_paterno ?? ""} ${responsable.apellido_materno ?? ""}`.replace(/\s+/g, " ").trim();
-
-    setFormulario((prev) => ({
-      ...prev,
-      jefe_inmediato: nombreResponsable,
-      jefe_inmediato_id: String(responsable.id),
-    }));
     setLoadingResponsable(false);
   };
   const guardarNecesidad = async (
@@ -247,6 +243,37 @@ export default function NuevaNecesidadPage() {
     }
     if (!formulario.adscripcion_id) {
       setError("Selecciona la adscripción donde se incorporará el prestador.");
+      setGuardando(false);
+      return;
+    }
+    const adscripcionSeleccionada = adscripciones.find(
+      (item) => String(item.id) === formulario.adscripcion_id,
+    );
+    if (!adscripcionSeleccionada) {
+      setError("La dirección seleccionada no pertenece a su secretaría.");
+      setGuardando(false);
+      return;
+    }
+
+    const { data: jefe, error: errorJefe } = await supabase
+      .from("personal")
+      .select("id, nombre, apellido_paterno, apellido_materno, adscripcion_id, area_id")
+      .eq("id", Number(formulario.jefe_inmediato_id))
+      .eq("adscripcion_id", adscripcionSeleccionada.id)
+      .eq("area_id", usuario.area_id)
+      .eq("activo", true)
+      .maybeSingle();
+
+    if (errorJefe || !jefe) {
+      setError("Seleccione un jefe inmediato registrado en la dirección elegida.");
+      setGuardando(false);
+      return;
+    }
+    const nombreJefe = `${jefe.nombre ?? ""} ${jefe.apellido_paterno ?? ""} ${jefe.apellido_materno ?? ""}`
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!nombreJefe) {
+      setError("El personal seleccionado no tiene un nombre registrado.");
       setGuardando(false);
       return;
     }
@@ -314,9 +341,8 @@ export default function NuevaNecesidadPage() {
           adscripciones.find((item) => String(item.id) === formulario.adscripcion_id)?.nombre ?? "",
         horario:
           formulario.horario.trim(),
-        jefe_inmediato_id: formulario.jefe_inmediato_id ? Number(formulario.jefe_inmediato_id) : null,
-        jefe_inmediato:
-          formulario.jefe_inmediato.trim(),
+        jefe_inmediato_id: jefe.id,
+        jefe_inmediato: nombreJefe,
         vacantes_disponibles: Number(
           formulario.vacantes_disponibles
         ),
@@ -337,15 +363,7 @@ export default function NuevaNecesidadPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* ENCABEZADO INSTITUCIONAL */}
-      <header className="border-b border-[#621132] bg-[#621132]">
-        <div className="mx-auto max-w-7xl px-6 py-3">
-          <img
-            src="/logo-pachuca.png"
-            alt="Pachuca Capital de la Transformación"
-            className="h-16 w-auto object-contain"
-          />
-        </div>
-      </header>
+      <HeaderInstitucional variante="logo" ancho="panel" />
       {/* CONTENIDO */}
       <section className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
@@ -600,27 +618,42 @@ export default function NuevaNecesidadPage() {
               {/* JEFE INMEDIATO */}
               <div>
                 <label
-                  htmlFor="jefe_inmediato"
+                  htmlFor="jefe_inmediato_id"
                   className="mb-2 block text-sm font-medium text-vino-oscuro"
                 >
                   Jefe(a) inmediato(a) *
                 </label>
-                <input
-                  id="jefe_inmediato"
-                  name="jefe_inmediato"
-                  type="text"
-                  value={loadingResponsable ? "Buscando responsable..." : formulario.jefe_inmediato}
-                  readOnly
+                <select
+                  id="jefe_inmediato_id"
+                  name="jefe_inmediato_id"
+                  value={formulario.jefe_inmediato_id}
+                  onChange={handleChange}
                   required
-                  placeholder={formulario.adscripcion_id ? "Responsable de la adscripción" : "Selecciona primero una adscripción"}
-                  className="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-900 outline-none"
-                />
+                  disabled={loadingResponsable || !formulario.adscripcion_id || personalDireccion.length === 0}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-vino-claro focus:ring-2 focus:ring-[#D4C29C] disabled:bg-gray-100"
+                >
+                  <option value="">
+                    {loadingResponsable
+                      ? "Cargando personal de la dirección..."
+                      : !formulario.adscripcion_id
+                        ? "Selecciona primero una dirección"
+                        : personalDireccion.length === 0
+                          ? "No hay personal en esta dirección"
+                          : "Selecciona al jefe inmediato"}
+                  </option>
+                  {personalDireccion.map((persona) => (
+                    <option key={persona.id} value={persona.id}>
+                      {nombreCompleto(persona)}
+                      {persona.puesto ? ` — ${persona.puesto}` : ""}
+                    </option>
+                  ))}
+                </select>
                 {errorResponsable && (
                   <p className="mt-2 text-xs text-red-600">{errorResponsable}</p>
                 )}
-                {!errorResponsable && formulario.jefe_inmediato && (
+                {!errorResponsable && formulario.adscripcion_id && personalDireccion.length > 0 && (
                   <p className="mt-2 text-xs text-gris-oscuro">
-                    Responsable identificado automáticamente según el puesto registrado.
+                    Solo se muestra el personal activo de la dirección seleccionada.
                   </p>
                 )}
               </div>

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import HeaderInstitucional from "@/components/HeaderInstitucional";
 
 export const instant = false;
 
@@ -145,31 +146,13 @@ export default async function AlumnosActivosAdministradoraPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* ENCABEZADO */}
-      <header className="border-b border-[#621132] bg-[#621132]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-          <div className="flex items-center">
-            <img
-              src="/logo-pachuca.png"
-              alt="Pachuca Capital de la Transformación"
-              className="h-16 w-auto object-contain"
-            />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-white">
-                {usuario.nombre} {usuario.apellido_paterno}
-              </p>
-
-              <p className="text-xs text-white/80">
-                Administradora
-              </p>
-            </div>
-
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+      <HeaderInstitucional
+        variante="sesion"
+        ancho="panel"
+        nombreUsuario={`${usuario.nombre} ${usuario.apellido_paterno}`}
+        rol="Administradora"
+        logoutButton={<LogoutButton />}
+      />
 
       {/* CONTENIDO */}
       <section className="mx-auto max-w-7xl px-6 py-10">
@@ -196,7 +179,7 @@ export default async function AlumnosActivosAdministradoraPage() {
         </div>
 
         {/* RESUMEN */}
-        <div className="mb-8 grid gap-4 md:grid-cols-2">
+        <div className="mb-8 grid max-w-xs gap-4">
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">
               Estudiantes activos

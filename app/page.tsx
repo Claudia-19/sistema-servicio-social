@@ -1,23 +1,13 @@
+import HeaderInstitucional from "@/components/HeaderInstitucional";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* ENCABEZADO INSTITUCIONAL */}
-      <header className="border-b border-[#621132] bg-[#621132]">
-        <div className="mx-auto flex max-w-7xl items-center px-6 py-3">
-          {/* Logo */}
-          <div className="flex items-center">
-            <img
-              src="/logo-pachuca.png"
-              alt="Pachuca Capital de la Transformación"
-              className="h-16 w-auto object-contain"
-            />
-          </div>
-        </div>
-      </header>
+      <HeaderInstitucional variante="centro" />
 
       {/* CONTENIDO PRINCIPAL */}
-      <section className="mx-auto max-w-7xl px-6 py-12">
-        <div className="mx-auto max-w-5xl">
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+        <div className="mx-auto max-w-6xl">
 
           {/* INTRODUCCIÓN */}
           <div className="text-center">
@@ -27,11 +17,11 @@ export default function Home() {
               Presidencia Municipal
             </p>
 
-            <h1 className="text-4xl font-bold tracking-tight text-[#621132] sm:text-5xl">
+            <h1 className="text-2xl font-bold tracking-tight text-[#621132] sm:text-3xl">
               Sistema Integral de Seguimiento de Formación Profesional
             </h1>
 
-            <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-[#707272] sm:text-lg">
+            <p className="mx-auto mt-3 max-w-3xl text-sm leading-6 text-[#707272] sm:text-base">
               Sistema para el registro, seguimiento y asignación de personas
               que realizan Servicio Social, y trámites similares en las diferentes áreas de la Presidencia Municipal.
             </p>
@@ -48,7 +38,7 @@ export default function Home() {
           </div>
 
           {/* PROCESO */}
-          <div className="mt-14">
+          <div className="mt-8">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-[#621132]">
                 ¿Cómo funciona el proceso?
@@ -60,7 +50,7 @@ export default function Home() {
             <div className="mt-8 grid gap-5 md:grid-cols-3">
 
               {/* PASO 1 */}
-              <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#621132] text-lg font-bold text-white">
                   01
                 </div>
@@ -76,7 +66,7 @@ export default function Home() {
               </div>
 
               {/* PASO 2 */}
-              <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#621132] text-lg font-bold text-white">
                   02
                 </div>
@@ -93,7 +83,7 @@ export default function Home() {
               </div>
 
               {/* PASO 3 */}
-              <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="rounded-xl border border-[#D4C29C] bg-white p-6 shadow-sm">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#621132] text-lg font-bold text-white">
                   03
                 </div>
